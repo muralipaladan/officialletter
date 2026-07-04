@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ഔദ്യോഗിക കത്ത് നിർമ്മാതാവ്</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#FBF8F1;
+    --paper-dark:#F1ECDF;
+    --ink:#1E2A3A;
+    --ink-soft:#4A5568;
+    --seal:#8C2F39;
+    --seal-dark:#6E2229;
+    --gold:#A9812F;
+    --line:#D9D0BC;
+    --ok:#2F6B4F;
+    --err:#A63B3B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #fff8ea 0%, transparent 60%),
+      var(--paper-dark);
+    font-family:'Noto Sans Malayalam','Inter',sans-serif;
+    color:var(--ink);
+    min-height:100vh;
+    padding:32px 16px 80px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+
+  header.top{
+    text-align:center;
+    margin-bottom:28px;
+  }
+  .kerala-mark{
+    width:46px;height:46px;margin:0 auto 10px;
+    border:2px solid var(--gold);
+    border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Noto Serif Malayalam',serif;
+    color:var(--gold);
+    font-size:20px;font-weight:700;
+    background:var(--paper);
+  }
+  h1{
+    font-family:'Noto Serif Malayalam',serif;
+    font-size:1.65rem;
+    margin:0 0 4px;
+    letter-spacing:.2px;
+  }
+  .subtitle{
+    color:var(--ink-soft);
+    font-size:.92rem;
+  }
+
+  .card{
+    background:var(--paper);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:24px;
+    margin-bottom:20px;
+    box-shadow:0 1px 3px rgba(30,20,10,.06);
+    position:relative;
+  }
+  .card::before{
+    content:"";
+    position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--seal),var(--gold));
+    border-radius:4px 4px 0 0;
+  }
+  .card h2{
+    font-family:'Noto Serif Malayalam',serif;
+    font-size:1.05rem;
+    margin:0 0 16px;
+    color:var(--seal-dark);
+    display:flex;align-items:center;gap:8px;
+  }
+  .card h2 .num{
+    font-family:'Inter',sans-serif;
+    font-size:.7rem;
+    color:var(--gold);
+    border:1px solid var(--gold);
+    border-radius:50%;
+    width:20px;height:20px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  @media(max-width:640px){.row{grid-template-columns:1fr;}}
+
+  label{
+    display:block;
+    font-size:.82rem;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+    font-weight:500;
+  }
+  .field{margin-bottom:14px;}
+  input[type=text], input[type=date], input[type=password], select, textarea{
+    width:100%;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:3px;
+    background:#fff;
+    font-family:inherit;
+    font-size:.95rem;
+    color:var(--ink);
+  }
+  input:focus, select:focus, textarea:focus{
+    outline:none;
+    border-color:var(--seal);
+    box-shadow:0 0 0 3px rgba(140,47,57,.1);
+  }
+  textarea{resize:vertical;min-height:80px;line-height:1.5;}
+  .hint{font-size:.76rem;color:var(--ink-soft);margin-top:4px;}
+
+  .key-row{display:flex;gap:8px;align-items:flex-end;}
+  .key-row .field{flex:1;margin-bottom:0;}
+
+  button{
+    font-family:'Noto Sans Malayalam','Inter',sans-serif;
+    cursor:pointer;
+    border:none;
+    border-radius:3px;
+    font-weight:600;
+    font-size:.9rem;
+  }
+  .btn-primary{
+    background:var(--seal);
+    color:#fff;
+    padding:13px 22px;
+    width:100%;
+    transition:background .15s;
+  }
+  .btn-primary:hover{background:var(--seal-dark);}
+  .btn-primary:disabled{background:#b9a9a9;cursor:not-allowed;}
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+    padding:9px 14px;
+  }
+  .btn-ghost:hover{border-color:var(--seal);color:var(--seal);}
+
+  .status{
+    font-size:.85rem;
+    margin-top:10px;
+    padding:9px 12px;
+    border-radius:3px;
+    display:none;
+  }
+  .status.show{display:block;}
+  .status.err{background:#FBEAEA;color:var(--err);border:1px solid #EFC9C9;}
+  .status.ok{background:#EAF3EE;color:var(--ok);border:1px solid #C9E4D3;}
+
+  /* Output letter sheet */
+  .sheet-wrap{position:relative;}
+  .stamp{
+    position:absolute;
+    top:18px;right:18px;
+    width:78px;height:78px;
+    border:2.5px solid var(--seal);
+    border-radius:50%;
+    color:var(--seal);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Noto Serif Malayalam',serif;
+    font-size:.7rem;font-weight:700;
+    text-align:center;line-height:1.2;
+    transform:rotate(-14deg) scale(0);
+    opacity:0;
+    transition:transform .5s cubic-bezier(.34,1.56,.64,1), opacity .3s;
+    pointer-events:none;
+    background:rgba(255,255,255,.6);
+  }
+  .stamp.show{transform:rotate(-14deg) scale(1);opacity:.85;}
+
+  .sheet{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:2px;
+    padding:40px 36px;
+    min-height:200px;
+    font-family:'Noto Serif Malayalam',serif;
+    font-size:1.02rem;
+    line-height:1.9;
+    color:#1a1a1a;
+    white-space:pre-wrap;
+    box-shadow:0 2px 10px rgba(0,0,0,.05);
+  }
+  .sheet.empty{
+    color:var(--ink-soft);
+    font-family:'Noto Sans Malayalam',sans-serif;
+    font-size:.9rem;
+    display:flex;align-items:center;justify-content:center;
+    text-align:center;
+    min-height:160px;
+  }
+  .sheet.loading{
+    display:flex;align-items:center;justify-content:center;
+    color:var(--ink-soft);
+    font-family:'Noto Sans Malayalam',sans-serif;
+  }
+  .spinner{
+    width:18px;height:18px;border-radius:50%;
+    border:2px solid var(--line);border-top-color:var(--seal);
+    animation:spin 1s linear infinite;
+    margin-right:10px;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .output-actions{
+    display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;
+  }
+
+  footer{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:.78rem;
+    margin-top:30px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="kerala-mark">കേ</div>
+    <h1>ഔദ്യോഗിക കത്ത് നിർമ്മാതാവ്</h1>
+    <div class="subtitle">വിവരങ്ങൾ നൽകുക — ഭരണമലയാളത്തിൽ കത്ത് / നോട്ട് / ഉത്തരവ് / സർക്കുലർ തയ്യാറാക്കാം</div>
+  </header>
+
+  <div class="card">
+    <h2><span class="num">1</span> Gemini API കീ</h2>
+    <div class="key-row">
+      <div class="field">
+        <label for="apiKey">API കീ (ഉപകരണത്തിൽ മാത്രം സൂക്ഷിക്കുന്നു)</label>
+        <input type="password" id="apiKey" placeholder="AIza...">
+      </div>
+      <button class="btn-ghost" id="saveKeyBtn" type="button">സേവ് ചെയ്യുക</button>
+    </div>
+    <div class="hint">API കീ ഇല്ലെങ്കിൽ <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>-യിൽ നിന്ന് സൗജന്യമായി എടുക്കാം.</div>
+    <div class="field" style="margin-top:12px;">
+      <label for="modelName">മോഡൽ</label>
+      <input type="text" id="modelName" value="gemini-2.0-flash">
+      <div class="hint">Error വന്നാൽ ഈ പേര് പുതിയ മോഡൽ പേരാക്കി മാറ്റി നോക്കുക (ഉദാ: gemini-2.5-flash).</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">2</span> രേഖയുടെ തരം</h2>
+    <div class="field">
+      <select id="docType">
+        <optgroup label="കത്തുകൾ">
+          <option value="letter">ഔദ്യോഗിക കത്ത് (Official Letter)</option>
+          <option value="do_letter">അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter)</option>
+          <option value="forwarding">അയക്കൽ കത്ത് (Forwarding Letter)</option>
+          <option value="reminder">ഓർമ്മപ്പെടുത്തൽ കത്ത് (Reminder Letter)</option>
+          <option value="invitation">ക്ഷണക്കത്ത് (Invitation Letter)</option>
+        </optgroup>
+        <optgroup label="ഉത്തരവുകൾ">
+          <option value="order">ഉത്തരവ് / നടപടിക്രമം (Order/Proceedings)</option>
+          <option value="sanction">അനുമതി ഉത്തരവ് (Sanction Order)</option>
+          <option value="transfer">സ്ഥലംമാറ്റ ഉത്തരവ് (Transfer Order)</option>
+        </optgroup>
+        <optgroup label="അറിയിപ്പുകൾ">
+          <option value="circular">സർക്കുലർ (Circular)</option>
+          <option value="public_notice">പൊതു അറിയിപ്പ് (Public Notice)</option>
+          <option value="tender_notice">ടെണ്ടർ അറിയിപ്പ് (Tender Notice)</option>
+          <option value="show_cause">കാരണം കാണിക്കൽ നോട്ടീസ് (Show Cause Notice)</option>
+        </optgroup>
+        <optgroup label="മറ്റുള്ളവ">
+          <option value="note">നോട്ട് (File Note)</option>
+          <option value="memo">മെമ്മോറാണ്ടം (Memorandum)</option>
+          <option value="certificate">സർട്ടിഫിക്കറ്റ് (Certificate)</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">3</span> ഓഫീസ് വിവരങ്ങൾ</h2>
+    <div class="row">
+      <div class="field">
+        <label for="officeName">ഓഫീസിന്റെ പേര്</label>
+        <input type="text" id="officeName" placeholder="ഉദാ: നിലമ്പൂർ മുനിസിപ്പാലിറ്റി">
+      </div>
+      <div class="field">
+        <label for="officeAddr">വിലാസം / ഫോൺ (ഐച്ഛികം)</label>
+        <input type="text" id="officeAddr" placeholder="ഉദാ: നിലമ്പൂർ, മലപ്പുറം - 679329">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="fileNo">നമ്പർ / ഫയൽ നം.</label>
+        <input type="text" id="fileNo" placeholder="ഉദാ: B2-1234/2026">
+      </div>
+      <div class="field">
+        <label for="dateField">തീയതി</label>
+        <input type="date" id="dateField">
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="recipientCard">
+    <h2><span class="num">4</span> സ്വീകർത്താവ്</h2>
+    <div class="field">
+      <label for="toWhom" id="toWhomLabel">ആർക്ക് (പേര്/പദവി/ഓഫീസ്)</label>
+      <input type="text" id="toWhom" placeholder="ഉദാ: അസിസ്റ്റന്റ് എൻജിനീയർ, PWD, നിലമ്പൂർ">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2><span class="num">5</span> വിഷയവും വിവരങ്ങളും</h2>
+    <div class="field">
+      <label for="subject">വിഷയം</label>
+      <input type="text" id="subject" placeholder="ഉദാ: വാർഡ് 12-ലെ റോഡ് അറ്റകുറ്റപ്പണി സംബന്ധിച്ച്">
+    </div>
+    <div class="field">
+      <label for="reference">സൂചന / പരാമർശം (മുൻ കത്തുകൾ ഉണ്ടെങ്കിൽ, ഓരോന്നും പുതിയ വരിയിൽ)</label>
+      <textarea id="reference" placeholder="ഉദാ: 1. ശ്രീ. XXX സമർപ്പിച്ച അപേക്ഷ, dt. 01-06-2026"></textarea>
+    </div>
+    <div class="field">
+      <label for="points">പ്രധാന കാര്യങ്ങൾ (ചെറിയ പോയിന്റുകളായി എഴുതിയാൽ മതി — മലയാളത്തിലോ Manglish-ലോ)</label>
+      <textarea id="points" style="min-height:120px" placeholder="ഉദാ:
+- റോഡിൽ കുഴി രൂപപ്പെട്ടിട്ടുണ്ട്
+- അപകട സാധ്യത ഉള്ളതിനാൽ അടിയന്തിരമായി പരിഹരിക്കണം
+- എസ്റ്റിമേറ്റ് തയ്യാറാക്കി സമർപ്പിക്കാൻ നിർദ്ദേശിക്കുന്നു"></textarea>
+      <div class="hint">Rough ആയി എഴുതിയാൽ മതി, AI അത് ഔദ്യോഗിക ഭാഷയിലാക്കി ശരിയായ ഖണ്ഡികകളാക്കി തരും.</div>
+    </div>
+  </div>
+
+  <div class="card" id="signCard">
+    <h2><span class="num">6</span> ഒപ്പ്</h2>
+    <div class="row">
+      <div class="field">
+        <label for="signName">ഒപ്പിടുന്ന ആളുടെ പേര് (ഐച്ഛികം)</label>
+        <input type="text" id="signName" placeholder="ഉദാ: കെ. രാജൻ">
+      </div>
+      <div class="field">
+        <label for="signDesig">പദവി</label>
+        <input type="text" id="signDesig" placeholder="ഉദാ: സെക്രട്ടറി">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-primary" id="generateBtn" type="button">കത്ത് തയ്യാറാക്കുക</button>
+  <div class="status" id="statusBox"></div>
+
+  <div class="card sheet-wrap" style="margin-top:24px;">
+    <h2><span class="num">✓</span> തയ്യാറാക്കിയ രേഖ</h2>
+    <div class="stamp" id="stamp">അംഗീകൃതം<br>DRAFT</div>
+    <div class="sheet empty" id="outputSheet">ഇവിടെ നിങ്ങളുടെ ഔദ്യോഗിക രേഖ പ്രത്യക്ഷപ്പെടും</div>
+    <div class="output-actions" id="outputActions" style="display:none;">
+      <button class="btn-ghost" id="copyBtn" type="button">പകർത്തുക (Copy)</button>
+      <button class="btn-ghost" id="downloadBtn" type="button">ഡൗൺലോഡ് (.txt)</button>
+    </div>
+  </div>
+
+  <footer>API കീ ഈ ബ്രൗസറിൽ മാത്രം സൂക്ഷിക്കുന്നു, മറ്റാർക്കും ലഭ്യമല്ല.</footer>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const docType = $('docType');
+const recipientCard = $('recipientCard');
+const statusBox = $('statusBox');
+const outputSheet = $('outputSheet');
+const outputActions = $('outputActions');
+const stamp = $('stamp');
+
+// default date = today
+$('dateField').valueAsDate = new Date();
+
+const NO_RECIPIENT_TYPES = ['note','order','sanction','memo'];
+const RECIPIENT_LABELS = {
+  letter: 'ആർക്ക് (പേര്/പദവി/ഓഫീസ്)',
+  do_letter: 'ആർക്ക് (പേര്/പദവി, വ്യക്തിപരമായി അഭിസംബോധന ചെയ്യാൻ)',
+  forwarding: 'ആർക്ക് അയക്കുന്നു (പേര്/പദവി/ഓഫീസ്)',
+  reminder: 'ആർക്ക് (മുൻപ് കത്ത് ലഭിച്ചയാൾ)',
+  invitation: 'ആരെ ക്ഷണിക്കുന്നു (പേര്/പദവി)',
+  transfer: 'ജീവനക്കാരന്റെ പേര്/പദവി (സ്ഥലംമാറ്റപ്പെടുന്നയാൾ)',
+  circular: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: എല്ലാ ജീവനക്കാരും)',
+  public_notice: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: പൊതുജനങ്ങൾ)',
+  tender_notice: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: കരാറുകാർ)',
+  show_cause: 'ആരുടെ പേരിൽ (ജീവനക്കാരൻ/സ്ഥാപനത്തിന്റെ പേര്, പദവി)',
+  certificate: 'ആർക്കുവേണ്ടി (അപേക്ഷകന്റെ പേര്)'
+};
+
+// toggle recipient card relevance depending on document type
+function syncFormForType(){
+  const t = docType.value;
+  if(NO_RECIPIENT_TYPES.includes(t)){
+    recipientCard.style.display = 'none';
+  }else{
+    recipientCard.style.display = 'block';
+    $('toWhomLabel').textContent = RECIPIENT_LABELS[t] || 'ആർക്ക് (പേര്/പദവി/ഓഫീസ്)';
+  }
+}
+docType.addEventListener('change', syncFormForType);
+syncFormForType();
+
+// --- persisted storage for API key / model / office defaults ---
+const DEFAULT_API_KEY = 'AQ.Ab8RN6ISoOkf-ugw9cuRjNoAG2Ms-gGVPV7fBpnHq5FI9kob2w';
+const DEFAULT_MODEL = 'gemini-3.5-flash';
+
+async function loadSaved(){
+  // pre-fill defaults first
+  $('apiKey').value = DEFAULT_API_KEY;
+  $('modelName').value = DEFAULT_MODEL;
+  try{
+    const r = await window.storage.get('letter-tool-settings');
+    if(r && r.value){
+      const s = JSON.parse(r.value);
+      if(s.apiKey) $('apiKey').value = s.apiKey;
+      if(s.model) $('modelName').value = s.model;
+      if(s.officeName) $('officeName').value = s.officeName;
+      if(s.officeAddr) $('officeAddr').value = s.officeAddr;
+    }
+  }catch(e){ /* no saved settings yet, defaults above already applied */ }
+}
+loadSaved();
+
+async function saveSettings(){
+  try{
+    await window.storage.set('letter-tool-settings', JSON.stringify({
+      apiKey: $('apiKey').value.trim(),
+      model: $('modelName').value.trim(),
+      officeName: $('officeName').value.trim(),
+      officeAddr: $('officeAddr').value.trim()
+    }));
+    showStatus('ok', 'സേവ് ചെയ്തു.');
+  }catch(e){
+    showStatus('err', 'സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.');
+  }
+}
+$('saveKeyBtn').addEventListener('click', saveSettings);
+
+function showStatus(type, msg){
+  statusBox.className = 'status show ' + type;
+  statusBox.textContent = msg;
+}
+function clearStatus(){
+  statusBox.className = 'status';
+  statusBox.textContent = '';
+}
+
+const TYPE_LABELS = {
+  letter: 'ഔദ്യോഗിക കത്ത് (Official Letter)',
+  do_letter: 'അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter)',
+  forwarding: 'അയക്കൽ കത്ത് (Forwarding Letter)',
+  reminder: 'ഓർമ്മപ്പെടുത്തൽ കത്ത് (Reminder Letter)',
+  invitation: 'ക്ഷണക്കത്ത് (Invitation Letter)',
+  order: 'ഉത്തരവ് / നടപടിക്രമം (Order/Proceedings)',
+  sanction: 'അനുമതി ഉത്തരവ് (Sanction Order)',
+  transfer: 'സ്ഥലംമാറ്റ ഉത്തരവ് (Transfer Order)',
+  circular: 'സർക്കുലർ (Circular)',
+  public_notice: 'പൊതു അറിയിപ്പ് (Public Notice)',
+  tender_notice: 'ടെണ്ടർ അറിയിപ്പ് (Tender Notice)',
+  show_cause: 'കാരണം കാണിക്കൽ നോട്ടീസ് (Show Cause Notice)',
+  note: 'നോട്ട് (File Note)',
+  memo: 'മെമ്മോറാണ്ടം (Memorandum)',
+  certificate: 'സർട്ടിഫിക്കറ്റ് (Certificate)'
+};
+
+const COMMON_RULES = `
+പൊതു നിയമങ്ങൾ:
+- ലളിതവും സ്പഷ്ടവുമായ ഭരണമലയാളം ഉപയോഗിക്കുക, പഴഞ്ചൻ പദപ്രയോഗങ്ങൾ ഒഴിവാക്കുക.
+- വലിയ വിഷയങ്ങൾ ചെറിയ ഖണ്ഡികകളായി തിരിക്കുക, ആവശ്യമെങ്കിൽ നമ്പറിടുക.
+- ആവർത്തനം ഒഴിവാക്കുക, വസ്തുതകൾ മാത്രം എഴുതുക.
+- എല്ലാ കത്തുകളും/ഉത്തരവുകളും ഓഫീസ് മേധാവിയുടെ പേരിൽ ഇറങ്ങുന്നതായി കണക്കാക്കുക.`;
+
+const FORMAT_GUIDE = {
+  letter: `ഔദ്യോഗിക കത്ത് (Official Letter): ഓഫീസ് ഹെഡർ, നമ്പർ/തീയതി, സ്വീകർത്താവിന്റെ വിലാസം, "വിഷയം:", ആവശ്യമെങ്കിൽ "സൂചന:", എന്നിട്ട് മാന്യമായ ഖണ്ഡികകളായി ഉള്ളടക്കം, ഒടുവിൽ "വിശ്വസ്തതയോടെ" എന്നും ഒപ്പ്/പദവിയും.` + COMMON_RULES,
+
+  do_letter: `അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter): ഇത് രണ്ട് ഉദ്യോഗസ്ഥർ തമ്മിലുള്ള വ്യക്തിപരവും എന്നാൽ ഔദ്യോഗികവുമായ കത്താണ്. "പ്രിയപ്പെട്ട ശ്രീ. [പേര്]," എന്ന് തുടങ്ങി, സൗഹാർദ്ദപരവും എന്നാൽ professional ആയ ഭാഷയിൽ വിഷയം അവതരിപ്പിക്കുക, ഒടുവിൽ "സ്നേഹപൂർവ്വം" പോലുള്ള closing ഉം ഒപ്പും. ഔപചാരിക ഹെഡർ formatting കുറവായിരിക്കും.` + COMMON_RULES,
+
+  forwarding: `അയക്കൽ കത്ത് (Forwarding Letter): ഒരു രേഖ/അപേക്ഷ മറ്റൊരു ഓഫീസിലേക്ക് കൈമാറുമ്പോൾ ഉപയോഗിക്കുന്നത്. ഹെഡർ, "വിഷയം:", "സൂചന:" (ഏത് അപേക്ഷ/രേഖയാണ് അയക്കുന്നതെന്ന്), തുടർന്ന് ഹ്രസ്വമായി "മേൽ സൂചിപ്പിച്ച രേഖ ഇതോടൊപ്പം അയക്കുന്നു, ആവശ്യമായ നടപടി സ്വീകരിക്കണമെന്ന് അഭ്യർത്ഥിക്കുന്നു" എന്ന മട്ടിൽ ഉള്ളടക്കം.` + COMMON_RULES,
+
+  reminder: `ഓർമ്മപ്പെടുത്തൽ കത്ത് (Reminder Letter): മുൻപ് അയച്ച കത്തിന് മറുപടി ലഭിക്കാത്തതിനാൽ ഓർമ്മപ്പെടുത്തുന്നത്. "സൂചന:" ഭാഗത്ത് മുൻ കത്തിന്റെ വിവരം നിർബന്ധമായും നൽകുക. ഭാഷ മാന്യമായിരിക്കണം, എന്നാൽ വേഗം മറുപടി/നടപടി ആവശ്യപ്പെടുന്ന ഊന്നൽ വേണം.` + COMMON_RULES,
+
+  invitation: `ക്ഷണക്കത്ത് (Invitation Letter): ഒരു ചടങ്ങ്/യോഗം/പരിപാടിയിലേക്ക് ക്ഷണിക്കുന്ന കത്ത്. ചടങ്ങിന്റെ പേര്, തീയതി, സമയം, സ്ഥലം എന്നിവ വ്യക്തമായി ഉൾപ്പെടുത്തുക. ഭാഷ ഊഷ്മളവും മാന്യവുമായിരിക്കണം, ഒടുവിൽ പങ്കെടുക്കണമെന്ന് അഭ്യർത്ഥിക്കുക.` + COMMON_RULES,
+
+  order: `ഉത്തരവ് / നടപടിക്രമം (Order/Proceedings): "പരാമർശം (സൂചന)" ഭാഗം, തുടർന്ന് വസ്തുത വിശദീകരണം (ഫയലിൽ എന്താണ് പരിശോധിച്ചത്), ഒടുവിൽ "...ഇതിനാൽ ഉത്തരവാകുന്നു." എന്ന രീതിയിൽ അന്തിമ തീരുമാനം കൃത്യമായി, സംശയത്തിനിടയില്ലാതെ പറയണം. അവസാനം "പകർപ്പ്" (Copy to) ആർക്കൊക്കെ അയക്കണം എന്നത് സൂചിപ്പിക്കാം.` + COMMON_RULES,
+
+  sanction: `അനുമതി ഉത്തരവ് (Sanction Order): ഏത് ആവശ്യത്തിനാണ് അനുമതി/തുക sanction ചെയ്യുന്നത് എന്ന് വ്യക്തമായി പറയുക. ബാധകമായ ചട്ടം/മാനദണ്ഡം സൂചിപ്പിക്കുക, തുക/നിബന്ധനകൾ ഉണ്ടെങ്കിൽ വ്യക്തമായി എടുത്തുപറയുക, ഒടുവിൽ "...സാങ്ഷൻ ചെയ്ത് ഉത്തരവാകുന്നു." എന്ന ക്ലോസോടെ അവസാനിപ്പിക്കുക.` + COMMON_RULES,
+
+  transfer: `സ്ഥലംമാറ്റ ഉത്തരവ് (Transfer Order): ജീവനക്കാരന്റെ പേര്, നിലവിലെ തസ്തിക/ഓഫീസ്, പുതിയ തസ്തിക/ഓഫീസ്, പ്രാബല്യം വരുന്ന തീയതി എന്നിവ വ്യക്തമായി ഉൾപ്പെടുത്തുക. ഒടുവിൽ ചാർജ് ഒഴിയാനും ഏറ്റെടുക്കാനുമുള്ള നിർദ്ദേശം ചേർക്കുക.` + COMMON_RULES,
+
+  circular: `സർക്കുലർ (Circular): നിർദ്ദേശം/അറിയിപ്പ് വ്യക്തമായി, ബാധകമായവർ ആരെല്ലാം എന്ന് വ്യക്തമാക്കി എഴുതുക. സാഹചര്യത്തിനനുസരിച്ച് ഭാഷ കർശനമോ സാധാരണ നിലയിലോ ആകാം. പാലിക്കേണ്ട സമയപരിധി ഉണ്ടെങ്കിൽ എടുത്തുപറയുക.` + COMMON_RULES,
+
+  public_notice: `പൊതു അറിയിപ്പ് (Public Notice): പൊതുജനങ്ങൾക്ക് വേണ്ടിയുള്ള അറിയിപ്പ്. ആരെ ബാധിക്കുന്നു, എന്താണ് കാര്യം, എന്ത് നടപടി വേണം/എപ്പോൾ എന്നിവ ലളിതമായി, എല്ലാവർക്കും മനസ്സിലാവുന്ന ഭാഷയിൽ എഴുതുക. അവസാന തീയതി/സമയപരിധി ഉണ്ടെങ്കിൽ എടുത്തുപറയുക.` + COMMON_RULES,
+
+  tender_notice: `ടെണ്ടർ അറിയിപ്പ് (Tender Notice): പണിയുടെ/സേവനത്തിന്റെ പേര്, എസ്റ്റിമേറ്റ് തുക (ലഭ്യമെങ്കിൽ), അപേക്ഷിക്കാനുള്ള യോഗ്യത, ടെണ്ടർ സമർപ്പിക്കേണ്ട അവസാന തീയതി/സമയം/സ്ഥലം എന്നിവ വ്യക്തമായി, structured ആയി ഉൾപ്പെടുത്തുക.` + COMMON_RULES,
+
+  show_cause: `കാരണം കാണിക്കൽ നോട്ടീസ് (Show Cause Notice): ആരോപണം/വീഴ്ച എന്താണെന്ന് വസ്തുതാപരമായി, കൃത്യമായി വിവരിക്കുക. ബാധകമായ ചട്ടം സൂചിപ്പിക്കുക. നിശ്ചിത ദിവസത്തിനകം എഴുതി മറുപടി നൽകാൻ നിർദ്ദേശിക്കുക, മറുപടി ലഭിക്കാത്ത പക്ഷം തുടർനടപടി സ്വീകരിക്കുമെന്ന് വ്യക്തമാക്കുക. ഭാഷ ഔപചാരികവും കർശനവുമായിരിക്കണം, എന്നാൽ ആരോപണവിധേയന് ന്യായമായ അവസരം നൽകുന്ന രീതിയിലാവണം.` + COMMON_RULES,
+
+  note: `നോട്ട് (File Note): "വായിക്കുക:" എന്ന ഭാഗത്ത് സൂചനകൾ, പിന്നെ വിഷയത്തിന്റെ ഹ്രസ്വ വിവരണം, ബാധകമായ ചട്ടം/നിയമം സൂചിപ്പിക്കൽ, ഒടുവിൽ ശുപാർശ/നിർദ്ദേശം. ഭാഷ objective ആയിരിക്കണം, വ്യക്തിപരമായ അഭിപ്രായം ഒഴിവാക്കുക.` + COMMON_RULES,
+
+  memo: `മെമ്മോറാണ്ടം (Memorandum): ഇത് ഒരു ഓഫീസിനുള്ളിലെ internal ആശയവിനിമയത്തിനാണ്, section-കൾ തമ്മിൽ വിവരം കൈമാറാൻ. ഹ്രസ്വവും നേരിട്ടുള്ളതുമായ ഭാഷയിൽ, "ഇനിപ്പറയുന്ന വിവരം/രേഖകൾ ആവശ്യമാണ്" എന്ന മട്ടിൽ കാര്യം അവതരിപ്പിക്കുക.` + COMMON_RULES,
+
+  certificate: `സർട്ടിഫിക്കറ്റ് (Certificate): "ഇതിനാൽ സാക്ഷ്യപ്പെടുത്തുന്നത് എന്തെന്നാൽ..." എന്ന ഔപചാരിക ശൈലിയിൽ, അപേക്ഷകന്റെ പേര്/വിവരം, എന്തിനാണ് സാക്ഷ്യപ്പെടുത്തുന്നത് എന്നത് കൃത്യമായി, നിയമപരമായി സാധുതയുള്ള ഭാഷയിൽ എഴുതുക. ഒപ്പ്, പദവി, സീൽ/മുദ്ര ഉണ്ടാവേണ്ട സ്ഥലം സൂചിപ്പിക്കുക.` + COMMON_RULES
+};
+
+function buildPrompt(data){
+  return `നീ കേരള സർക്കാർ/തദ്ദേശസ്വയംഭരണ സ്ഥാപനങ്ങളിലെ ഫയൽ എഴുത്തിൽ വിദഗ്ധനായ ഒരു സീനിയർ ഓഫീസ് ഉദ്യോഗസ്ഥനാണ്. താഴെ നൽകുന്ന വിവരങ്ങൾ ഉപയോഗിച്ച് ശരിയായ ഭരണമലയാള ശൈലിയിൽ ഒരു ${TYPE_LABELS[data.docType]} തയ്യാറാക്കുക.
+
+ഈ രേഖാ തരത്തിനുള്ള format നിർദ്ദേശം:
+${FORMAT_GUIDE[data.docType]}
+
+നൽകിയ വിവരങ്ങൾ:
+- ഓഫീസ്: ${data.officeName || '(നൽകിയിട്ടില്ല)'}
+- വിലാസം: ${data.officeAddr || '(നൽകിയിട്ടില്ല)'}
+- നമ്പർ: ${data.fileNo || '(നൽകിയിട്ടില്ല)'}
+- തീയതി: ${data.dateStr || '(നൽകിയിട്ടില്ല)'}
+- സ്വീകർത്താവ്: ${data.toWhom || '(ബാധകമല്ല)'}
+- വിഷയം: ${data.subject || '(നൽകിയിട്ടില്ല)'}
+- സൂചന: ${data.reference || '(ഇല്ല)'}
+- പ്രധാന കാര്യങ്ങൾ (rough notes): 
+${data.points || '(നൽകിയിട്ടില്ല)'}
+- ഒപ്പ്: ${data.signName || ''} ${data.signDesig ? '(' + data.signDesig + ')' : ''}
+
+നിർദ്ദേശങ്ങൾ:
+- മുകളിലെ rough പോയിന്റുകൾ ശരിയായ ഔദ്യോഗിക ഖണ്ഡികകളാക്കി മാറ്റുക, വെറുതെ അതേപടി പകർത്തരുത്.
+- അന്തിമ ഔട്ട്പുട്ടിൽ കത്ത്/രേഖ മാത്രം നൽകുക — അധിക വിശദീകരണമോ മാർക്ക്ഡൗൺ ചിഹ്നങ്ങളോ (** പോലുള്ളവ) ചേർക്കരുത്.
+- ശരിയായ വരി ഇടവേളകളോടെ, വായിക്കാൻ എളുപ്പമുള്ള രീതിയിൽ format ചെയ്യുക.`;
+}
+
+async function generateLetter(){
+  clearStatus();
+  const apiKey = $('apiKey').value.trim();
+  const model = $('modelName').value.trim() || 'gemini-2.0-flash';
+
+  if(!apiKey){
+    showStatus('err', 'API കീ നൽകുക.');
+    return;
+  }
+  const data = {
+    docType: docType.value,
+    officeName: $('officeName').value.trim(),
+    officeAddr: $('officeAddr').value.trim(),
+    fileNo: $('fileNo').value.trim(),
+    dateStr: $('dateField').value ? new Date($('dateField').value).toLocaleDateString('en-GB') : '',
+    toWhom: $('toWhom').value.trim(),
+    subject: $('subject').value.trim(),
+    reference: $('reference').value.trim(),
+    points: $('points').value.trim(),
+    signName: $('signName').value.trim(),
+    signDesig: $('signDesig').value.trim()
+  };
+
+  if(!data.subject || !data.points){
+    showStatus('err', 'വിഷയവും പ്രധാന കാര്യങ്ങളും നിർബന്ധമായും നൽകുക.');
+    return;
+  }
+
+  const btn = $('generateBtn');
+  btn.disabled = true;
+  btn.textContent = 'തയ്യാറാക്കുന്നു...';
+  stamp.classList.remove('show');
+  outputActions.style.display = 'none';
+  outputSheet.className = 'sheet loading';
+  outputSheet.innerHTML = '<span class="spinner"></span> AI രേഖ തയ്യാറാക്കുന്നു...';
+
+  try{
+    const prompt = buildPrompt(data);
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.4 }
+      })
+    });
+
+    if(!res.ok){
+      const errBody = await res.text();
+      throw new Error(`API പിശക് (${res.status}): ${errBody.slice(0,200)}`);
+    }
+
+    const json = await res.json();
+    const text = json?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n').trim();
+
+    if(!text){
+      throw new Error('AI-യിൽ നിന്ന് ഔട്ട്പുട്ട് ലഭിച്ചില്ല. വീണ്ടും ശ്രമിക്കുക.');
+    }
+
+    outputSheet.className = 'sheet';
+    outputSheet.textContent = text;
+    outputActions.style.display = 'flex';
+    setTimeout(() => stamp.classList.add('show'), 150);
+    showStatus('ok', 'തയ്യാറാക്കി പൂർത്തിയായി.');
+    saveSettings();
+  }catch(e){
+    outputSheet.className = 'sheet empty';
+    outputSheet.textContent = 'രേഖ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.';
+    showStatus('err', e.message || 'എന്തോ പിശക് സംഭവിച്ചു.');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = 'കത്ത് തയ്യാറാക്കുക';
+  }
+}
+
+$('generateBtn').addEventListener('click', generateLetter);
+
+$('copyBtn').addEventListener('click', async () => {
+  try{
+    await navigator.clipboard.writeText(outputSheet.textContent);
+    showStatus('ok', 'പകർത്തി.');
+  }catch(e){
+    showStatus('err', 'പകർത്താൻ കഴിഞ്ഞില്ല.');
+  }
+});
+
+$('downloadBtn').addEventListener('click', () => {
+  const blob = new Blob([outputSheet.textContent], {type: 'text/plain;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const type = docType.value;
+  a.download = `${type}-${($('fileNo').value || 'draft').replace(/[^a-zA-Z0-9-]/g,'_')}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+</script>
+</body>
+</html>
