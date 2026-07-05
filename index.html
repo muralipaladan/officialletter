@@ -273,7 +273,10 @@
   </div>
 
   <div id="restOfForm" style="display:none;">
-  <div class="hint" style="margin-bottom:16px;">API കീ ശരിയായി സേവ് ചെയ്തിട്ടുണ്ട്. <a href="#" id="changeKeyLink">കീ മാറ്റണോ?</a></div>
+  <div class="hint" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <span>API കീ ശരിയായി സേവ് ചെയ്തിട്ടുണ്ട്. <a href="#" id="changeKeyLink">കീ മാറ്റണോ?</a></span>
+    <button class="btn-ghost" id="newLetterBtn" type="button" style="padding:6px 12px;font-size:.8rem;">+ പുതിയ കത്ത് തുടങ്ങുക</button>
+  </div>
   <div class="card">
     <h2><span class="num">2</span> രേഖയുടെ തരം</h2>
     <div class="field">
@@ -448,6 +451,7 @@ const apiKeyCard = $('apiKeyCard');
 function showLetterPage(){
   apiKeyCard.style.display = 'none';
   restOfForm.style.display = 'block';
+  restoreDraft();
 }
 function showKeyPage(){
   apiKeyCard.style.display = 'block';
@@ -476,6 +480,57 @@ function showKeyStatus(type, msg){
   box.className = 'status show ' + type;
   box.textContent = msg;
 }
+
+// --- draft autosave: survives refresh; cleared only via "New Letter" or once a fresh document type is explicitly started ---
+const DRAFT_FIELDS = ['officeName','officeAddr','fileNo','dateField','toWhom','subject','reference','points','signName','signDesig'];
+let draftTimer = null;
+function saveDraftNow(){
+  const draft = { docType: docType.value };
+  DRAFT_FIELDS.forEach(id => draft[id] = $(id).value);
+  if(outputSheet.classList.contains('sheet') && !outputSheet.classList.contains('empty') && !outputSheet.classList.contains('loading')){
+    draft.output = outputSheet.textContent;
+  }
+  window.storage.set('letter-tool-draft', JSON.stringify(draft)).catch(()=>{});
+}
+function saveDraft(){
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(saveDraftNow, 400);
+}
+async function restoreDraft(){
+  try{
+    const r = await window.storage.get('letter-tool-draft');
+    if(!r || !r.value) return;
+    const d = JSON.parse(r.value);
+    if(d.docType){ docType.value = d.docType; syncFormForType(); }
+    DRAFT_FIELDS.forEach(id => { if(d[id]) $(id).value = d[id]; });
+    if(d.output){
+      outputSheet.className = 'sheet';
+      outputSheet.textContent = d.output;
+      outputActions.style.display = 'flex';
+      stamp.classList.add('show');
+    }
+  }catch(e){ /* no draft yet */ }
+}
+async function clearDraft(){
+  try{ await window.storage.delete('letter-tool-draft'); }catch(e){ /* nothing to clear */ }
+}
+[...DRAFT_FIELDS, 'docType'].forEach(id => {
+  $(id).addEventListener('input', saveDraft);
+  $(id).addEventListener('change', saveDraft);
+});
+
+$('newLetterBtn').addEventListener('click', async () => {
+  docType.value = 'letter';
+  DRAFT_FIELDS.forEach(id => $(id).value = '');
+  $('dateField').valueAsDate = new Date();
+  syncFormForType();
+  outputSheet.className = 'sheet empty';
+  outputSheet.textContent = 'ഇവിടെ നിങ്ങളുടെ ഔദ്യോഗിക രേഖ പ്രത്യക്ഷപ്പെടും';
+  outputActions.style.display = 'none';
+  stamp.classList.remove('show');
+  clearStatus();
+  await clearDraft();
+});
 
 async function saveSettings(silent){
   try{
@@ -705,6 +760,7 @@ async function generateLetter(){
     setTimeout(() => stamp.classList.add('show'), 150);
     showStatus('ok', 'തയ്യാറാക്കി പൂർത്തിയായി.');
     saveSettings(true);
+    saveDraftNow();
   }catch(e){
     outputSheet.className = 'sheet empty';
     outputSheet.textContent = 'രേഖ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.';
