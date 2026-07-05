@@ -458,10 +458,25 @@ function showKeyPage(){
   restOfForm.style.display = 'none';
 }
 
+// --- local persistence helper (plain localStorage; works in any browser) ---
+const store = {
+  get(key){
+    try{ const v = localStorage.getItem(key); return v === null ? null : { value: v }; }
+    catch(e){ return null; }
+  },
+  set(key, value){
+    try{ localStorage.setItem(key, value); return true; }
+    catch(e){ return false; }
+  },
+  remove(key){
+    try{ localStorage.removeItem(key); }catch(e){ /* ignore */ }
+  }
+};
+
 // --- persisted storage for API key / model / office defaults ---
-async function loadSaved(){
+function loadSaved(){
   try{
-    const r = await window.storage.get('letter-tool-settings');
+    const r = store.get('letter-tool-settings');
     if(r && r.value){
       const s = JSON.parse(r.value);
       if(s.apiKey) $('apiKey').value = s.apiKey;
@@ -481,7 +496,7 @@ function showKeyStatus(type, msg){
   box.textContent = msg;
 }
 
-// --- draft autosave: survives refresh; cleared only via "New Letter" or once a fresh document type is explicitly started ---
+// --- draft autosave: survives refresh; cleared only via "New Letter" ---
 const DRAFT_FIELDS = ['officeName','officeAddr','fileNo','dateField','toWhom','subject','reference','points','signName','signDesig'];
 let draftTimer = null;
 function saveDraftNow(){
@@ -490,15 +505,15 @@ function saveDraftNow(){
   if(outputSheet.classList.contains('sheet') && !outputSheet.classList.contains('empty') && !outputSheet.classList.contains('loading')){
     draft.output = outputSheet.textContent;
   }
-  window.storage.set('letter-tool-draft', JSON.stringify(draft)).catch(()=>{});
+  store.set('letter-tool-draft', JSON.stringify(draft));
 }
 function saveDraft(){
   clearTimeout(draftTimer);
   draftTimer = setTimeout(saveDraftNow, 400);
 }
-async function restoreDraft(){
+function restoreDraft(){
   try{
-    const r = await window.storage.get('letter-tool-draft');
+    const r = store.get('letter-tool-draft');
     if(!r || !r.value) return;
     const d = JSON.parse(r.value);
     if(d.docType){ docType.value = d.docType; syncFormForType(); }
@@ -511,15 +526,15 @@ async function restoreDraft(){
     }
   }catch(e){ /* no draft yet */ }
 }
-async function clearDraft(){
-  try{ await window.storage.delete('letter-tool-draft'); }catch(e){ /* nothing to clear */ }
+function clearDraft(){
+  store.remove('letter-tool-draft');
 }
 [...DRAFT_FIELDS, 'docType'].forEach(id => {
   $(id).addEventListener('input', saveDraft);
   $(id).addEventListener('change', saveDraft);
 });
 
-$('newLetterBtn').addEventListener('click', async () => {
+$('newLetterBtn').addEventListener('click', () => {
   docType.value = 'letter';
   DRAFT_FIELDS.forEach(id => $(id).value = '');
   $('dateField').valueAsDate = new Date();
@@ -529,20 +544,17 @@ $('newLetterBtn').addEventListener('click', async () => {
   outputActions.style.display = 'none';
   stamp.classList.remove('show');
   clearStatus();
-  await clearDraft();
+  clearDraft();
 });
 
-async function saveSettings(silent){
-  try{
-    await window.storage.set('letter-tool-settings', JSON.stringify({
-      apiKey: $('apiKey').value.trim(),
-      model: $('modelName').value.trim(),
-      officeName: $('officeName').value.trim(),
-      officeAddr: $('officeAddr').value.trim()
-    }));
-  }catch(e){
-    if(!silent) showKeyStatus('err', 'സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.');
-  }
+function saveSettings(silent){
+  const ok = store.set('letter-tool-settings', JSON.stringify({
+    apiKey: $('apiKey').value.trim(),
+    model: $('modelName').value.trim(),
+    officeName: $('officeName').value.trim(),
+    officeAddr: $('officeAddr').value.trim()
+  }));
+  if(!ok && !silent) showKeyStatus('err', 'സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.');
 }
 
 // validate key against Gemini before saving/unlocking, so a bad key never hides the key page
