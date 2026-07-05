@@ -217,6 +217,18 @@
     display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;
   }
 
+  .how-to{
+    background:var(--paper-dark);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:12px 14px;
+    font-size:.85rem;
+    line-height:1.6;
+    color:var(--ink-soft);
+  }
+  .how-to strong{color:var(--ink);}
+  .how-to a{color:var(--seal);}
+
   footer{
     text-align:center;
     color:var(--ink-soft);
@@ -236,21 +248,31 @@
 
   <div class="card">
     <h2><span class="num">1</span> Gemini API കീ</h2>
-    <div class="key-row">
+    <div class="how-to">
+      <strong>എങ്ങനെ ഉപയോഗിക്കാം:</strong>
+      <ol style="margin:6px 0 0;padding-left:18px;">
+        <li>താഴെ നിങ്ങളുടെ Gemini API കീ നൽകി "സേവ് ചെയ്യുക" അമർത്തുക.</li>
+        <li>കീ ഒരിക്കൽ സേവ് ചെയ്താൽ ഈ ബ്രൗസറിൽ സൂക്ഷിക്കും — വീണ്ടും ചോദിക്കില്ല.</li>
+        <li>അതിനുശേഷം മാത്രം താഴെയുള്ള ഭാഗങ്ങൾ (രേഖയുടെ തരം, വിവരങ്ങൾ മുതലായവ) ദൃശ്യമാകും.</li>
+      </ol>
+      <strong style="display:block;margin-top:8px;">API കീ എങ്ങനെ കിട്ടും:</strong> <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>-യിൽ Google അക്കൗണ്ട് ഉപയോഗിച്ച് ലോഗിൻ ചെയ്ത് "Create API key" അമർത്തിയാൽ സൗജന്യമായി കീ ലഭിക്കും.
+    </div>
+    <div class="key-row" style="margin-top:14px;">
       <div class="field">
         <label for="apiKey">API കീ (ഉപകരണത്തിൽ മാത്രം സൂക്ഷിക്കുന്നു)</label>
         <input type="password" id="apiKey" placeholder="AIza...">
       </div>
       <button class="btn-ghost" id="saveKeyBtn" type="button">സേവ് ചെയ്യുക</button>
     </div>
-    <div class="hint">API കീ ഇല്ലെങ്കിൽ <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>-യിൽ നിന്ന് സൗജന്യമായി എടുക്കാം.</div>
     <div class="field" style="margin-top:12px;">
       <label for="modelName">മോഡൽ</label>
       <input type="text" id="modelName" value="gemini-2.0-flash">
       <div class="hint">Error വന്നാൽ ഈ പേര് പുതിയ മോഡൽ പേരാക്കി മാറ്റി നോക്കുക (ഉദാ: gemini-2.5-flash).</div>
     </div>
+    <div class="status" id="keyStatus"></div>
   </div>
 
+  <div id="restOfForm" style="display:none;">
   <div class="card">
     <h2><span class="num">2</span> രേഖയുടെ തരം</h2>
     <div class="field">
@@ -277,6 +299,7 @@
           <option value="note">നോട്ട് (File Note)</option>
           <option value="memo">മെമ്മോറാണ്ടം (Memorandum)</option>
           <option value="certificate">സർട്ടിഫിക്കറ്റ് (Certificate)</option>
+          <option value="rti_reply">വിവരാവകാശ മറുപടി (RTI Reply)</option>
         </optgroup>
       </select>
     </div>
@@ -325,7 +348,7 @@
       <textarea id="reference" placeholder="ഉദാ: 1. ശ്രീ. XXX സമർപ്പിച്ച അപേക്ഷ, dt. 01-06-2026"></textarea>
     </div>
     <div class="field">
-      <label for="points">പ്രധാന കാര്യങ്ങൾ (ചെറിയ പോയിന്റുകളായി എഴുതിയാൽ മതി — മലയാളത്തിലോ Manglish-ലോ)</label>
+      <label for="points" id="pointsLabel">പ്രധാന കാര്യങ്ങൾ (ചെറിയ പോയിന്റുകളായി എഴുതിയാൽ മതി — മലയാളത്തിലോ Manglish-ലോ)</label>
       <textarea id="points" style="min-height:120px" placeholder="ഉദാ:
 - റോഡിൽ കുഴി രൂപപ്പെട്ടിട്ടുണ്ട്
 - അപകട സാധ്യത ഉള്ളതിനാൽ അടിയന്തിരമായി പരിഹരിക്കണം
@@ -360,6 +383,7 @@
       <button class="btn-ghost" id="downloadBtn" type="button">ഡൗൺലോഡ് (.txt)</button>
     </div>
   </div>
+  </div><!-- /restOfForm -->
 
   <footer>API കീ ഈ ബ്രൗസറിൽ മാത്രം സൂക്ഷിക്കുന്നു, മറ്റാർക്കും ലഭ്യമല്ല.</footer>
 </div>
@@ -388,10 +412,16 @@ const RECIPIENT_LABELS = {
   public_notice: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: പൊതുജനങ്ങൾ)',
   tender_notice: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: കരാറുകാർ)',
   show_cause: 'ആരുടെ പേരിൽ (ജീവനക്കാരൻ/സ്ഥാപനത്തിന്റെ പേര്, പദവി)',
-  certificate: 'ആർക്കുവേണ്ടി (അപേക്ഷകന്റെ പേര്)'
+  certificate: 'ആർക്കുവേണ്ടി (അപേക്ഷകന്റെ പേര്)',
+  rti_reply: 'അപേക്ഷകന്റെ പേര് / വിലാസം'
 };
 
-// toggle recipient card relevance depending on document type
+const POINTS_LABELS = {
+  rti_reply: 'വിവരാവകാശ ചോദ്യങ്ങൾ (ഓരോ ചോദ്യവും നമ്പറിട്ട് പുതിയ വരിയിൽ എഴുതുക — ചോദ്യം 1, ചോദ്യം 2 ... എന്ന ക്രമത്തിൽ)',
+  default: 'പ്രധാന കാര്യങ്ങൾ (ചെറിയ പോയിന്റുകളായി എഴുതിയാൽ മതി — മലയാളത്തിലോ Manglish-ലോ)'
+};
+
+// toggle recipient card + points label depending on document type
 function syncFormForType(){
   const t = docType.value;
   if(NO_RECIPIENT_TYPES.includes(t)){
@@ -400,18 +430,27 @@ function syncFormForType(){
     recipientCard.style.display = 'block';
     $('toWhomLabel').textContent = RECIPIENT_LABELS[t] || 'ആർക്ക് (പേര്/പദവി/ഓഫീസ്)';
   }
+  $('pointsLabel').textContent = POINTS_LABELS[t] || POINTS_LABELS.default;
+  $('points').placeholder = t === 'rti_reply'
+    ? 'ഉദാ:\n1. കഴിഞ്ഞ വർഷം വാർഡ് 12-ൽ അനുവദിച്ച റോഡ് പണികളുടെ എസ്റ്റിമേറ്റ് വിവരം\n2. ടെണ്ടർ നടപടി പൂർത്തിയായോ എന്ന്\n3. കരാറുകാരന്റെ പേരും തുകയും'
+    : `ഉദാ:
+- റോഡിൽ കുഴി രൂപപ്പെട്ടിട്ടുണ്ട്
+- അപകട സാധ്യത ഉള്ളതിനാൽ അടിയന്തിരമായി പരിഹരിക്കണം
+- എസ്റ്റിമേറ്റ് തയ്യാറാക്കി സമർപ്പിക്കാൻ നിർദ്ദേശിക്കുന്നു`;
 }
 docType.addEventListener('change', syncFormForType);
 syncFormForType();
 
-// --- persisted storage for API key / model / office defaults ---
-const DEFAULT_API_KEY = 'AQ.Ab8RN6ISoOkf-ugw9cuRjNoAG2Ms-gGVPV7fBpnHq5FI9kob2w';
-const DEFAULT_MODEL = 'gemini-3.5-flash';
+// --- gate: rest of form hidden until an API key is present ---
+const restOfForm = $('restOfForm');
+function syncKeyGate(){
+  const hasKey = $('apiKey').value.trim().length > 0;
+  restOfForm.style.display = hasKey ? 'block' : 'none';
+}
+$('apiKey').addEventListener('input', syncKeyGate);
 
+// --- persisted storage for API key / model / office defaults ---
 async function loadSaved(){
-  // pre-fill defaults first
-  $('apiKey').value = DEFAULT_API_KEY;
-  $('modelName').value = DEFAULT_MODEL;
   try{
     const r = await window.storage.get('letter-tool-settings');
     if(r && r.value){
@@ -421,11 +460,18 @@ async function loadSaved(){
       if(s.officeName) $('officeName').value = s.officeName;
       if(s.officeAddr) $('officeAddr').value = s.officeAddr;
     }
-  }catch(e){ /* no saved settings yet, defaults above already applied */ }
+  }catch(e){ /* no saved settings yet */ }
+  syncKeyGate();
 }
 loadSaved();
 
-async function saveSettings(){
+function showKeyStatus(type, msg){
+  const box = $('keyStatus');
+  box.className = 'status show ' + type;
+  box.textContent = msg;
+}
+
+async function saveSettings(silent){
   try{
     await window.storage.set('letter-tool-settings', JSON.stringify({
       apiKey: $('apiKey').value.trim(),
@@ -433,12 +479,19 @@ async function saveSettings(){
       officeName: $('officeName').value.trim(),
       officeAddr: $('officeAddr').value.trim()
     }));
-    showStatus('ok', 'സേവ് ചെയ്തു.');
+    if(!silent) showKeyStatus('ok', 'സേവ് ചെയ്തു. API കീ ഇനി വീണ്ടും ചോദിക്കില്ല.');
   }catch(e){
-    showStatus('err', 'സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.');
+    if(!silent) showKeyStatus('err', 'സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.');
   }
 }
-$('saveKeyBtn').addEventListener('click', saveSettings);
+$('saveKeyBtn').addEventListener('click', () => {
+  if(!$('apiKey').value.trim()){
+    showKeyStatus('err', 'API കീ നൽകുക.');
+    return;
+  }
+  saveSettings();
+  syncKeyGate();
+});
 
 function showStatus(type, msg){
   statusBox.className = 'status show ' + type;
@@ -464,7 +517,8 @@ const TYPE_LABELS = {
   show_cause: 'കാരണം കാണിക്കൽ നോട്ടീസ് (Show Cause Notice)',
   note: 'നോട്ട് (File Note)',
   memo: 'മെമ്മോറാണ്ടം (Memorandum)',
-  certificate: 'സർട്ടിഫിക്കറ്റ് (Certificate)'
+  certificate: 'സർട്ടിഫിക്കറ്റ് (Certificate)',
+  rti_reply: 'വിവരാവകാശ മറുപടി (RTI Reply)'
 };
 
 const COMMON_RULES = `
@@ -503,7 +557,24 @@ const FORMAT_GUIDE = {
 
   memo: `മെമ്മോറാണ്ടം (Memorandum): ഇത് ഒരു ഓഫീസിനുള്ളിലെ internal ആശയവിനിമയത്തിനാണ്, section-കൾ തമ്മിൽ വിവരം കൈമാറാൻ. ഹ്രസ്വവും നേരിട്ടുള്ളതുമായ ഭാഷയിൽ, "ഇനിപ്പറയുന്ന വിവരം/രേഖകൾ ആവശ്യമാണ്" എന്ന മട്ടിൽ കാര്യം അവതരിപ്പിക്കുക.` + COMMON_RULES,
 
-  certificate: `സർട്ടിഫിക്കറ്റ് (Certificate): "ഇതിനാൽ സാക്ഷ്യപ്പെടുത്തുന്നത് എന്തെന്നാൽ..." എന്ന ഔപചാരിക ശൈലിയിൽ, അപേക്ഷകന്റെ പേര്/വിവരം, എന്തിനാണ് സാക്ഷ്യപ്പെടുത്തുന്നത് എന്നത് കൃത്യമായി, നിയമപരമായി സാധുതയുള്ള ഭാഷയിൽ എഴുതുക. ഒപ്പ്, പദവി, സീൽ/മുദ്ര ഉണ്ടാവേണ്ട സ്ഥലം സൂചിപ്പിക്കുക.` + COMMON_RULES
+  certificate: `സർട്ടിഫിക്കറ്റ് (Certificate): "ഇതിനാൽ സാക്ഷ്യപ്പെടുത്തുന്നത് എന്തെന്നാൽ..." എന്ന ഔപചാരിക ശൈലിയിൽ, അപേക്ഷകന്റെ പേര്/വിവരം, എന്തിനാണ് സാക്ഷ്യപ്പെടുത്തുന്നത് എന്നത് കൃത്യമായി, നിയമപരമായി സാധുതയുള്ള ഭാഷയിൽ എഴുതുക. ഒപ്പ്, പദവി, സീൽ/മുദ്ര ഉണ്ടാവേണ്ട സ്ഥലം സൂചിപ്പിക്കുക.` + COMMON_RULES,
+
+  rti_reply: `വിവരാവകാശ മറുപടി (RTI Reply): ഇത് Right to Information Act, 2005 (കേന്ദ്ര നിയമം), Kerala RTI Rules, 2006 എന്നിവ പ്രകാരം State Public Information Officer (SPIO) നൽകുന്ന ഔദ്യോഗിക മറുപടിയാണ്.
+
+നിർബന്ധമായും പാലിക്കേണ്ട ഘടന:
+1. ഹെഡർ: ഓഫീസ് പേര്, "SPIO-യുടെ കാര്യാലയം" / SPIO പദവി, നമ്പർ, തീയതി.
+2. "വിഷയം: വിവരാവകാശ നിയമം 2005 പ്രകാരമുള്ള അപേക്ഷ - മറുപടി സംബന്ധിച്ച്" എന്ന മട്ടിൽ.
+3. "സൂചന:" ഭാഗത്ത് അപേക്ഷകൻ സമർപ്പിച്ച അപേക്ഷയുടെ തീയതി/നമ്പർ (ലഭ്യമെങ്കിൽ).
+4. ഓരോ ചോദ്യത്തിനും അതേ നമ്പറിൽ, ഒറ്റ ഖണ്ഡികയായി ഉത്തരം നൽകുക: "ചോദ്യം 1:" എന്നിട്ട് ചോദ്യം ആവർത്തിക്കാതെ "ഉത്തരം:" എന്ന് മാത്രം എഴുതി മറുപടി എഴുതുക.
+5. ഓരോ ഉത്തരവും ചോദ്യത്തിൽ ചോദിച്ചതിന് മാത്രം ഉള്ള മറുപടിയായിരിക്കണം — ചോദിക്കാത്ത കാര്യങ്ങൾ കൂട്ടിച്ചേർക്കരുത്, ചോദ്യങ്ങൾ തമ്മിൽ കൂട്ടിക്കുഴയ്ക്കരുത്.
+6. ഉത്തരത്തിന്റെ സ്വഭാവം നൽകിയ വിവരത്തിന് അനുസരിച്ച് താഴെ പറയുന്നവയിൽ ഏതെങ്കിലും ആയിരിക്കാം (നൽകിയ പോയിന്റുകൾ അനുസരിച്ച് തിരഞ്ഞെടുക്കുക, ഊഹിച്ച് പുതിയ വിവരം ഉണ്ടാക്കരുത്):
+   - ആവശ്യപ്പെട്ട വിവരം office-ൽ ലഭ്യമല്ലെങ്കിൽ: "ആവശ്യപ്പെട്ട വിവരം ഈ ഓഫീസിൽ ലഭ്യമല്ല" എന്ന് വ്യക്തമായി പറയുക.
+   - വിവരം ലഭ്യമെങ്കിൽ: ചോദിച്ച വിവരം കൃത്യമായി നൽകുക, അല്ലെങ്കിൽ "ഇതോടൊപ്പം ഉള്ള അനുബന്ധത്തിൽ നൽകിയിരിക്കുന്നു" എന്ന് പറയുക.
+   - നടപടി ആരംഭിച്ചിട്ടില്ലെങ്കിൽ: "ഈ വിഷയത്തിൽ നടപടിക്രമങ്ങൾ ആരംഭിച്ചിട്ടില്ല" എന്ന് പറയുക.
+   - രേഖകൾ പരിശോധിക്കാവുന്നതാണെങ്കിൽ: "അപേക്ഷകന് നേരിട്ട് ഓഫീസിൽ എത്തി ബന്ധപ്പെട്ട രേഖകൾ പരിശോധിക്കാവുന്നതാണ്" എന്ന് പറയുക.
+   - വിവരം മറ്റൊരു ഓഫീസിന്റെ പരിധിയിലാണെങ്കിൽ: RTI Act Section 6(3) പ്രകാരം ബന്ധപ്പെട്ട ഓഫീസിലേക്ക് അപേക്ഷ കൈമാറിയതായി പറയുക.
+7. ഒടുവിൽ: "ഈ മറുപടിയിൽ തൃപ്തനല്ലെങ്കിൽ, ഇത് ലഭിച്ച് 30 ദിവസത്തിനകം ഒന്നാം അപ്പലേറ്റ് അതോറിറ്റിക്ക് അപ്പീൽ സമർപ്പിക്കാവുന്നതാണ് (RTI Act 2005, Section 19(1))" എന്ന ഖണ്ഡിക നിർബന്ധമായും ചേർക്കുക.
+8. SPIO-യുടെ ഒപ്പ്/പദവിയോടെ അവസാനിപ്പിക്കുക.` + COMMON_RULES
 };
 
 function buildPrompt(data){
@@ -520,14 +591,20 @@ ${FORMAT_GUIDE[data.docType]}
 - സ്വീകർത്താവ്: ${data.toWhom || '(ബാധകമല്ല)'}
 - വിഷയം: ${data.subject || '(നൽകിയിട്ടില്ല)'}
 - സൂചന: ${data.reference || '(ഇല്ല)'}
-- പ്രധാന കാര്യങ്ങൾ (rough notes): 
+- ${data.docType === 'rti_reply' ? 'വിവരാവകാശ ചോദ്യങ്ങൾ (നമ്പറിട്ടത്)' : 'പ്രധാന കാര്യങ്ങൾ (rough notes)'}: 
 ${data.points || '(നൽകിയിട്ടില്ല)'}
 - ഒപ്പ്: ${data.signName || ''} ${data.signDesig ? '(' + data.signDesig + ')' : ''}
 
 നിർദ്ദേശങ്ങൾ:
 - മുകളിലെ rough പോയിന്റുകൾ ശരിയായ ഔദ്യോഗിക ഖണ്ഡികകളാക്കി മാറ്റുക, വെറുതെ അതേപടി പകർത്തരുത്.
 - അന്തിമ ഔട്ട്പുട്ടിൽ കത്ത്/രേഖ മാത്രം നൽകുക — അധിക വിശദീകരണമോ മാർക്ക്ഡൗൺ ചിഹ്നങ്ങളോ (** പോലുള്ളവ) ചേർക്കരുത്.
-- ശരിയായ വരി ഇടവേളകളോടെ, വായിക്കാൻ എളുപ്പമുള്ള രീതിയിൽ format ചെയ്യുക.`;
+- ശരിയായ വരി ഇടവേളകളോടെ, വായിക്കാൻ എളുപ്പമുള്ള രീതിയിൽ format ചെയ്യുക.${data.docType === 'rti_reply' ? `
+
+RTI-സംബന്ധിച്ച കർശന നിർദ്ദേശങ്ങൾ (നിർബന്ധം):
+- മുകളിൽ നൽകിയ ഓരോ ചോദ്യത്തിനും അതേ ക്രമനമ്പറിൽ, ഒന്നിനൊന്ന് വേറിട്ട ഖണ്ഡികയായി മാത്രം ഉത്തരം നൽകുക. ചോദ്യം 1-ന് ഉത്തരം 1 മാത്രം, ചോദ്യം 2-ന് ഉത്തരം 2 മാത്രം.
+- ഓരോ ഉത്തരവും ആ ചോദ്യത്തിൽ ചോദിച്ച കാര്യത്തിന് മാത്രമുള്ള മറുപടിയായിരിക്കണം. ചോദിക്കാത്ത അധിക വിവരം ഒരിക്കലും കൂട്ടിച്ചേർക്കരുത്.
+- മുകളിൽ നൽകിയ പോയിന്റുകളിൽ ഇല്ലാത്ത ഒരു വസ്തുതയും സ്വയം ഊഹിച്ച് ഉണ്ടാക്കരുത് — വിവരം ലഭ്യമല്ല/ലഭ്യമാണ്/നടപടി ആരംഭിച്ചിട്ടില്ല/രേഖകൾ പരിശോധിക്കാം എന്നിവയിൽ ഏതാണ് ബാധകം എന്ന് നൽകിയ പോയിന്റുകളിൽ നിന്ന് മാത്രം തീരുമാനിക്കുക.
+- ചോദ്യങ്ങളുടെ എണ്ണം എത്രയാണെങ്കിലും അത്ര ഉത്തരങ്ങൾ മാത്രം നൽകുക — കൂടുതലോ കുറവോ പാടില്ല.` : ''}`;
 }
 
 async function generateLetter(){
@@ -595,7 +672,7 @@ async function generateLetter(){
     outputActions.style.display = 'flex';
     setTimeout(() => stamp.classList.add('show'), 150);
     showStatus('ok', 'തയ്യാറാക്കി പൂർത്തിയായി.');
-    saveSettings();
+    saveSettings(true);
   }catch(e){
     outputSheet.className = 'sheet empty';
     outputSheet.textContent = 'രേഖ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.';
