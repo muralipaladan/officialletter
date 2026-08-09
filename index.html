@@ -305,12 +305,58 @@
           <option value="certificate">സർട്ടിഫിക്കറ്റ് (Certificate)</option>
           <option value="rti_reply">വിവരാവകാശ മറുപടി (RTI Reply)</option>
         </optgroup>
+        <optgroup label="അപേക്ഷകൾ (Public → Office)">
+          <option value="app_general">പൊതു അപേക്ഷ (General Application)</option>
+          <option value="app_income">വരുമാന സർട്ടിഫിക്കറ്റ് അപേക്ഷ</option>
+          <option value="app_nativity">ജനന/നാട്ടുകാർ സർട്ടിഫിക്കറ്റ് അപേക്ഷ</option>
+          <option value="app_residence">താമസ സർട്ടിഫിക്കറ്റ് അപേക്ഷ</option>
+          <option value="app_caste">ജാതി/കമ്മ്യൂണിറ്റി സർട്ടിഫിക്കറ്റ് അപേക്ഷ</option>
+          <option value="app_noc">NOC അപേക്ഷ (No Objection Certificate)</option>
+          <option value="app_building">കെട്ടിട നിർമ്മാണ/ഉപയോഗ അനുമതി അപേക്ഷ</option>
+          <option value="app_trade">വ്യാപാര ലൈസൻസ് അപേക്ഷ</option>
+          <option value="app_pension">പെൻഷൻ/ആനുകൂല്യ അപേക്ഷ</option>
+          <option value="app_land">ഭൂമി/ഭൂഉടമ അനുബന്ധ അപേക്ഷ</option>
+          <option value="app_complaint">പരാതി / Grievance Application</option>
+          <option value="app_leave">അവധി അപേക്ഷ (Leave Application)</option>
+          <option value="app_scholarship">സ്കോളർഷിപ്പ്/ആനുകൂല്യ അപേക്ഷ</option>
+          <option value="app_water">കുടിവെള്ള/ഡ്രെയിനേജ് കണക്ഷൻ അപേക്ഷ</option>
+          <option value="app_road">റോഡ്/ഇൻഫ്രാ ആവശ്യ അപേക്ഷ</option>
+        </optgroup>
       </select>
     </div>
   </div>
 
+  <!-- Applicant Card (shown only for application types) -->
+  <div class="card" id="applicantCard" style="display:none;">
+    <h2><span class="num">3a</span> അപേക്ഷകന്റെ വിവരങ്ങൾ</h2>
+    <div class="row">
+      <div class="field">
+        <label for="appName">അപേക്ഷകന്റെ പേര്</label>
+        <input type="text" id="appName" placeholder="ഉദാ: രാജേഷ് കുമാർ കെ.">
+      </div>
+      <div class="field">
+        <label for="appAge">വയസ്സ് / ജനനതീയതി (ഐച്ഛികം)</label>
+        <input type="text" id="appAge" placeholder="ഉദാ: 42 / 15-03-1982">
+      </div>
+    </div>
+    <div class="field">
+      <label for="appAddr">വിലാസം</label>
+      <textarea id="appAddr" style="min-height:60px" placeholder="ഉദാ: 'ശ്രീനിലയം', ആനക്കയം P.O., നിലമ്പൂർ, മലപ്പുറം - 679329"></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label for="appPhone">ഫോൺ / Mobile (ഐച്ഛികം)</label>
+        <input type="text" id="appPhone" placeholder="ഉദാ: 9876543210">
+      </div>
+      <div class="field">
+        <label for="appId">ID / Aadhaar / Voter ID (ഐച്ഛികം)</label>
+        <input type="text" id="appId" placeholder="ഉദാ: Voter ID: ABC1234567">
+      </div>
+    </div>
+  </div>
+
   <div class="card">
-    <h2><span class="num">3</span> ഓഫീസ് വിവരങ്ങൾ</h2>
+    <h2><span class="num">3</span> <span id="officeCardHeading">ഓഫീസ് വിവരങ്ങൾ</span></h2>
     <div class="row">
       <div class="field">
         <label for="officeName">ഓഫീസിന്റെ പേര്</label>
@@ -362,7 +408,7 @@
   </div>
 
   <div class="card" id="signCard">
-    <h2><span class="num">6</span> ഒപ്പ്</h2>
+    <h2><span class="num">6</span> <span id="signCardHeading">ഒപ്പ്</span></h2>
     <div class="row">
       <div class="field">
         <label for="signName">ഒപ്പിടുന്ന ആളുടെ പേര് (ഐച്ഛികം)</label>
@@ -379,7 +425,7 @@
   <div class="status" id="statusBox"></div>
 
   <div class="card sheet-wrap" style="margin-top:24px;">
-    <h2><span class="num">✓</span> തയ്യാറാക്കിയ രേഖ</h2>
+    <h2><span class="num">✓</span> <span id="outputHeadingLabel">തയ്യാറാക്കിയ രേഖ</span></h2>
     <div class="stamp" id="stamp">അംഗീകൃതം<br>DRAFT</div>
     <div class="sheet empty" id="outputSheet">ഇവിടെ നിങ്ങളുടെ ഔദ്യോഗിക രേഖ പ്രത്യക്ഷപ്പെടും</div>
     <div class="output-actions" id="outputActions" style="display:none;">
@@ -417,30 +463,72 @@ const RECIPIENT_LABELS = {
   tender_notice: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: കരാറുകാർ)',
   show_cause: 'ആരുടെ പേരിൽ (ജീവനക്കാരൻ/സ്ഥാപനത്തിന്റെ പേര്, പദവി)',
   certificate: 'ആർക്കുവേണ്ടി (അപേക്ഷകന്റെ പേര്)',
-  rti_reply: 'അപേക്ഷകന്റെ പേര് / വിലാസം'
+  rti_reply: 'അപേക്ഷകന്റെ പേര് / വിലാസം',
+  app_general: 'ആർക്ക് / ഏത് ഓഫീസിൽ (പദവി/ഓഫീസ് പേര്)',
+  app_income: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: വില്ലേജ് ഓഫീസർ, RI, Tahsildar)',
+  app_nativity: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: വില്ലേജ് ഓഫീസർ/Tahsildar)',
+  app_residence: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: വില്ലേജ് ഓഫീസർ/Panchayat Secretary)',
+  app_caste: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Tahsildar/RI)',
+  app_noc: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Panchayat Secretary/Municipality Secretary)',
+  app_building: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Panchayat Secretary/Municipal Engineer)',
+  app_trade: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Panchayat Secretary/Municipal Secretary)',
+  app_pension: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Village Officer/Social Welfare Officer)',
+  app_land: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Village Officer/Tahsildar/RDO)',
+  app_complaint: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: District Collector/Ombudsman)',
+  app_leave: 'ആർക്ക് (Head of Office/Department Officer)',
+  app_scholarship: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Social Welfare Officer/DC Office)',
+  app_water: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: AE KWA/Panchayat Secretary)',
+  app_road: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Panchayat Secretary/Assistant Engineer)'
 };
 
 const POINTS_LABELS = {
   rti_reply: 'വിവരാവകാശ ചോദ്യങ്ങൾ (ഓരോ ചോദ്യവും നമ്പറിട്ട് പുതിയ വരിയിൽ എഴുതുക — ചോദ്യം 1, ചോദ്യം 2 ... എന്ന ക്രമത്തിൽ)',
-  default: 'പ്രധാന കാര്യങ്ങൾ (ചെറിയ പോയിന്റുകളായി എഴുതിയാൽ മതി — മലയാളത്തിലോ Manglish-ലോ)'
+  default: 'പ്രധാന കാര്യങ്ങൾ (ചെറിയ പോയിന്റുകളായി എഴുതിയാൽ മതി — മലയാളത്തിലോ Manglish-ലോ)',
+  app: 'ആവശ്യം / Details (rough ആയി എഴുതിയാൽ മതി — AI ഔദ്യോഗിക ഭാഷയിൽ മാറ്റും)'
 };
+const APP_TYPES = ['app_general','app_income','app_nativity','app_residence','app_caste','app_noc','app_building','app_trade','app_pension','app_land','app_complaint','app_leave','app_scholarship','app_water','app_road'];
 
-// toggle recipient card + points label depending on document type
+// toggle recipient card + points label + applicant card depending on document type
 function syncFormForType(){
   const t = docType.value;
+  const isApp = APP_TYPES.includes(t);
+
+  // Applicant card (shown only for application types)
+  $('applicantCard').style.display = isApp ? 'block' : 'none';
+
+  // Office info card header
+  $('officeCardHeading').textContent = isApp ? 'ഓഫീസ് / Authority വിവരങ്ങൾ' : 'ഓഫീസ് വിവരങ്ങൾ';
+  $('officeName').placeholder = isApp ? 'ഉദാ: നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്' : 'ഉദാ: നിലമ്പൂർ മുനിസിപ്പാലിറ്റി';
+
+  // Recipient card
   if(NO_RECIPIENT_TYPES.includes(t)){
     recipientCard.style.display = 'none';
   }else{
     recipientCard.style.display = 'block';
     $('toWhomLabel').textContent = RECIPIENT_LABELS[t] || 'ആർക്ക് (പേര്/പദവി/ഓഫീസ്)';
+    $('toWhom').placeholder = isApp ? 'ഉദാ: സെക്രട്ടറി, നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്' : 'ഉദാ: അസിസ്റ്റന്റ് എൻജിനീയർ, PWD, നിലമ്പൂർ';
   }
-  $('pointsLabel').textContent = POINTS_LABELS[t] || POINTS_LABELS.default;
-  $('points').placeholder = t === 'rti_reply'
-    ? 'ഉദാ:\n1. കഴിഞ്ഞ വർഷം വാർഡ് 12-ൽ അനുവദിച്ച റോഡ് പണികളുടെ എസ്റ്റിമേറ്റ് വിവരം\n2. ടെണ്ടർ നടപടി പൂർത്തിയായോ എന്ന്\n3. കരാറുകാരന്റെ പേരും തുകയും'
-    : `ഉദാ:
-- റോഡിൽ കുഴി രൂപപ്പെട്ടിട്ടുണ്ട്
-- അപകട സാധ്യത ഉള്ളതിനാൽ അടിയന്തിരമായി പരിഹരിക്കണം
-- എസ്റ്റിമേറ്റ് തയ്യാറാക്കി സമർപ്പിക്കാൻ നിർദ്ദേശിക്കുന്നു`;
+
+  // Points label
+  if(isApp){
+    $('pointsLabel').textContent = POINTS_LABELS.app;
+    $('points').placeholder = 'ഉദാ:\n- ആവശ്യത്തിന്റെ കാരണം\n- ബന്ധപ്പെട്ട details (survey no, ward, dates...)\n- attach ചെയ്ത documents';
+  } else {
+    $('pointsLabel').textContent = POINTS_LABELS[t] || POINTS_LABELS.default;
+    $('points').placeholder = t === 'rti_reply'
+      ? 'ഉദാ:\n1. കഴിഞ്ഞ വർഷം വാർഡ് 12-ൽ അനുവദിച്ച റോഡ് പണികളുടെ എസ്റ്റിമേറ്റ് വിവരം\n2. ടെണ്ടർ നടപടി പൂർത്തിയായോ എന്ന്\n3. കരാറുകാരന്റെ പേരും തുകയും'
+      : `ഉദാ:\n- റോഡിൽ കുഴി രൂപപ്പെട്ടിട്ടുണ്ട്\n- അപകട സാധ്യത ഉള്ളതിനാൽ അടിയന്തിരമായി പരിഹരിക്കണം\n- എസ്റ്റിമേറ്റ് തയ്യാറാക്കി സമർപ്പിക്കാൻ നിർദ്ദേശിക്കുന്നു`;
+  }
+
+  // Sign card heading
+  $('signCardHeading').textContent = isApp ? 'അപേക്ഷകന്റെ ഒപ്പ്' : 'ഒപ്പ്';
+  $('signName').placeholder = isApp ? 'ഉദാ: രാജേഷ് കെ.' : 'ഉദാ: കെ. രാജൻ';
+  $('signDesig').placeholder = isApp ? 'ഐച്ഛികം (ഉദാ: കർഷകൻ/വിദ്യാർത്ഥി)' : 'ഉദാ: സെക്രട്ടറി';
+
+  // Generate button text
+  $('generateBtn').textContent = isApp ? 'അപേക്ഷ തയ്യാറാക്കുക' : 'കത്ത് തയ്യാറാക്കുക';
+  // Output heading
+  $('outputHeadingLabel').textContent = isApp ? '✓ തയ്യാറാക്കിയ അപേക്ഷ' : '✓ തയ്യാറാക്കിയ രേഖ';
 }
 docType.addEventListener('change', syncFormForType);
 syncFormForType();
@@ -497,7 +585,7 @@ function showKeyStatus(type, msg){
 }
 
 // --- draft autosave: survives refresh; cleared only via "New Letter" ---
-const DRAFT_FIELDS = ['officeName','officeAddr','fileNo','dateField','toWhom','subject','reference','points','signName','signDesig'];
+const DRAFT_FIELDS = ['officeName','officeAddr','fileNo','dateField','toWhom','subject','reference','points','signName','signDesig','appName','appAge','appAddr','appPhone','appId'];
 let draftTimer = null;
 function saveDraftNow(){
   const draft = { docType: docType.value };
@@ -617,7 +705,22 @@ const TYPE_LABELS = {
   note: 'നോട്ട് (File Note)',
   memo: 'മെമ്മോറാണ്ടം (Memorandum)',
   certificate: 'സർട്ടിഫിക്കറ്റ് (Certificate)',
-  rti_reply: 'വിവരാവകാശ മറുപടി (RTI Reply)'
+  rti_reply: 'വിവരാവകാശ മറുപടി (RTI Reply)',
+  app_general: 'പൊതു അപേക്ഷ',
+  app_income: 'വരുമാന സർട്ടിഫിക്കറ്റ് അപേക്ഷ',
+  app_nativity: 'ജനന/നാട്ടുകാർ സർട്ടിഫിക്കറ്റ് അപേക്ഷ',
+  app_residence: 'താമസ സർട്ടിഫിക്കറ്റ് അപേക്ഷ',
+  app_caste: 'ജാതി/കമ്മ്യൂണിറ്റി സർട്ടിഫിക്കറ്റ് അപേക്ഷ',
+  app_noc: 'NOC അപേക്ഷ',
+  app_building: 'കെട്ടിട അനുമതി അപേക്ഷ',
+  app_trade: 'വ്യാപാര ലൈസൻസ് അപേക്ഷ',
+  app_pension: 'പെൻഷൻ/ആനുകൂല്യ അപേക്ഷ',
+  app_land: 'ഭൂമി അനുബന്ധ അപേക്ഷ',
+  app_complaint: 'പരാതി / Grievance Application',
+  app_leave: 'അവധി അപേക്ഷ',
+  app_scholarship: 'സ്കോളർഷിപ്പ്/ആനുകൂല്യ അപേക്ഷ',
+  app_water: 'കുടിവെള്ള/ഡ്രെയിനേജ് കണക്ഷൻ അപേക്ഷ',
+  app_road: 'റോഡ്/ഇൻഫ്രാ ആവശ്യ അപേക്ഷ'
 };
 
 const COMMON_RULES = `
@@ -658,6 +761,36 @@ const FORMAT_GUIDE = {
 
   certificate: `സർട്ടിഫിക്കറ്റ് (Certificate): "ഇതിനാൽ സാക്ഷ്യപ്പെടുത്തുന്നത് എന്തെന്നാൽ..." എന്ന ഔപചാരിക ശൈലിയിൽ, അപേക്ഷകന്റെ പേര്/വിവരം, എന്തിനാണ് സാക്ഷ്യപ്പെടുത്തുന്നത് എന്നത് കൃത്യമായി, നിയമപരമായി സാധുതയുള്ള ഭാഷയിൽ എഴുതുക. ഒപ്പ്, പദവി, സീൽ/മുദ്ര ഉണ്ടാവേണ്ട സ്ഥലം സൂചിപ്പിക്കുക.` + COMMON_RULES,
 
+  app_general: `പൊതു അപേക്ഷ (General Application): ഒരു സാധാരണ പൗരൻ ഒരു സർക്കാർ/തദ്ദേശ ഓഫീസിൽ ഏതെങ്കിലും ആവശ്യത്തിനായി സമർപ്പിക്കുന്ന അപേക്ഷ. ഘടന: ആദ്യം "മഹോദയ/മഹോദയേ," എന്ന അഭിസംബോധന, തുടർന്ന് അപേക്ഷകന്റെ പേര്/വിലാസം/ബന്ധം, ശേഷം ആവശ്യം/പ്രശ്നം വ്യക്തമായി, കഴിഞ്ഞ ശ്രമങ്ങൾ ഉണ്ടെങ്കിൽ പരാമർശം, ഒടുവിൽ "അപേക്ഷകൻ/അപേക്ഷക" ഒപ്പ്, വിലാസം, ദിനാംകം. ഭാഷ ലളിതവും മാന്യവുമായ ഔദ്യോഗിക മലയാളം.` + COMMON_RULES,
+
+  app_income: `വരുമാന സർട്ടിഫിക്കറ്റ് അപേക്ഷ: അപേക്ഷകന്റെ കുടുംബ വരുമാന വിവരം (ഉറവിടങ്ങൾ, ഏകദേശ തുക), ആവശ്യം (സ്കോളർഷിപ്പ്/ജോലി/ആനുകൂല്യം/കോടതി), ബന്ധപ്പെട്ട ഉദ്യോഗസ്ഥൻ/ഗ്രാമ ഓഫീസർ/വില്ലേജ് ഓഫീസർ മുഖേന verify ചെയ്യണം എന്ന അഭ്യർത്ഥന. വരുമാന വിവരം സൂക്ഷ്മമായും സത്യസന്ധമായും നൽകുക, ആനുകൂല്യ ഉദ്ദേശ്യം വ്യക്തമാക്കുക.` + COMMON_RULES,
+
+  app_nativity: `ജനന/നാട്ടുകാർ സർട്ടിഫിക്കറ്റ് അപേക്ഷ: അപേക്ഷകൻ ഈ ഗ്രാമ/ഓഫീസ് പരിധിയിൽ ജനിച്ചതും/നിരന്തരം താമസിക്കുന്നതും, ഉദ്ദേശ്യം (ജോലി/ഉദ്യോഗ ആനുകൂല്യം/ഇ-ടെൻഡർ/ആനുകൂല്യം), ആവശ്യമായ രേഖകൾ ഉള്ളതെന്ന് ഉറപ്പ്. ജനനതീയതി, ജന്മഗ്രാമം, ഇപ്പോഴത്തെ മേൽവിലാസം വ്യക്തമായി നൽകുക.` + COMMON_RULES,
+
+  app_residence: `താമസ സർട്ടിഫിക്കറ്റ് അപേക്ഷ: അപേക്ഷകൻ ആ സ്ഥലത്ത് എത്ര വർഷമായി/എന്ന് മുതൽ താമസിക്കുന്നു, ഉദ്ദേശ്യം (ആനുകൂല്യം/ജോലി/പ്രവേശനം), Ration Card/Voter ID/Electricity Bill പ്രകാരമുള്ള വിലാസ തെളിവ് ഉണ്ടെന്ന് സൂചിപ്പിക്കുക. കാലദൈർഘ്യം വ്യക്തമായി സൂചിപ്പിക്കുക.` + COMMON_RULES,
+
+  app_caste: `ജാതി/കമ്മ്യൂണിറ്റി സർട്ടിഫിക്കറ്റ് അപേക്ഷ: അപേക്ഷകന്റെ ജാതി/മത/കമ്മ്യൂണിറ്റി, Schedule Caste/Schedule Tribe/OBC/ഏത് list ൽ ഉൾപ്പെടുന്നു, ആ ഉദ്ദേശ്യം (ജോലി/education/ആനുകൂല്യം), ബന്ധപ്പെട്ട revenue authority/RI/Tahsildar അനുമതി ആവശ്യം. തെളിവ് ഉണ്ടെന്ന് ഉറപ്പ്.` + COMMON_RULES,
+
+  app_noc: `NOC അപേക്ഷ (No Objection Certificate): ഏത് ആവശ്യത്തിന് NOC വേണം (കെട്ടിടം/ബിസിനസ്/ലൈസൻസ്/ആനുകൂല്യം), ആ activity/plan-ന്റെ സ്ഥലം/സ്വഭാവം, ബന്ധപ്പെട്ട dept-ന് (Fire/Pollution/Panchayat/Municipality) submission, ആ office ഒരു objection ഇല്ലെന്ന് confirm ചെയ്തു NOC നൽകണം എന്ന് ആവശ്യം.` + COMMON_RULES,
+
+  app_building: `കെട്ടിട നിർമ്മാണ/ഉപയോഗ അനുമതി അപേക്ഷ: ഭൂമി/പ്ലോട്ട് വിവരം (Survey No., Area), നിർദ്ദേശിക്കുന്ന കെട്ടിടത്തിന്റെ ഉദ്ദേശ്യം (വാസസ്ഥലം/വ്യാപാരം/ഗോഡൗൺ), ഫ്ലോർ ഏരിയ, Building Plan/Permit-ന്റെ status, ആർക്കിടക്ട്/Structural Engineer-ന്റെ approve ഉണ്ടോ. Kerala Municipality Building Rules/Panchayat Building Rules ൽ ഉള്ള requirements mention ചെയ്ത് permit നൽകണം.` + COMMON_RULES,
+
+  app_trade: `വ്യാപാര ലൈസൻസ് അപേക്ഷ: ബിസിനസ്/കടയുടെ പേര്, ഉദ്ദേശ്യം (ഏത് trade), സ്ഥലം/Ward, ഉടമ വിവരം, ആദ്യ ലൈസൻസ്/renewal/amendment, ആവശ്യ NOC-കൾ ഉണ്ടെന്ന് confirm, Tax/Fee remit ചെയ്തതായി reference. Municipality/Panchayat Act പ്രകാരം ലൈസൻസ് നൽകണം.` + COMMON_RULES,
+
+  app_pension: `പെൻഷൻ/ആനുകൂല്യ അപേക്ഷ: ഏത് ആനുകൂല്യം (വൃദ്ധ/Widow/Disability/Farmer pension), അർഹതയ്ക്കുള്ള കാരണം, വയസ്/disability/status proof, family income, Bank account details (ആനുകൂല്യം direct transfer-ന്), പ്രാദേശിക ward member/officer confirm ചെയ്തതായി reference. Kerala Social Security Mission/Social Welfare Dept-ൽ process ആകണം.` + COMMON_RULES,
+
+  app_land: `ഭൂമി/ഭൂഉടമ അനുബന്ധ അപേക്ഷ: Survey/Re-survey/Mutation/Patta transfer/Land Record correction ഏതാണ്, Survey No./Plot No., current owner, ആവശ്യ മാറ്റം, Land Revenue Dept/Village Office-ൽ submission, ബന്ധപ്പെട്ട sale deed/inheritance document reference. Tahsildar/RDO ദ്വാര approve ചെയ്ത് Record update ആകണം.` + COMMON_RULES,
+
+  app_complaint: `പരാതി / Grievance Application: ആർക്കെതിരെ/ഏത് വിഷയത്തിൽ പരാതി, നടന്ന സംഭവം/problem (തീയതി/സ്ഥലം/വ്യക്തി), ഇതിനുമുൻപ് ഇതേ authority/higher level-ൽ approach ചെയ്തോ, ആഗ്രഹിക്കുന്ന പ്രതിവിധി (action/compensation/investigation), തെളിവ്/ദൃക്‍സാക്ഷി ഉണ്ടെങ്കിൽ mention. ഭാഷ ആരോപണ സ്വഭാവം ഒഴിവാക്കി, objective ആയി, relevant facts മാത്രം.` + COMMON_RULES,
+
+  app_leave: `അവധി അപേക്ഷ (Leave Application): ജീവനക്കാരന്റെ പേര്/designation/office, ഏത് leave (Casual/Medical/Earned/Maternity/Paternity), ആവശ്യ തീയതികൾ, leave-ന്റെ കാരണം (medical-ആണ് certificate attach ചെയ്യണം), ആ കാലത്ത് duty alternative arrangement ഉണ്ടോ, Leave Balance reference. Service Rules-ൽ entitlement ഉള്ള leave ആണ് apply ചെയ്യുന്നത്.` + COMMON_RULES,
+
+  app_scholarship: `സ്കോളർഷിപ്പ്/ആനുകൂല്യ അപേക്ഷ: ഏത് scheme (Central/State/SC/ST/OBC/Minority/Merit), Applicant-ന്റെ educational qualification, family income, ജാതി/community (ബാധകം ആണെങ്കിൽ), marks/grade, institution details, Bank account, ആവശ്യ certificates (income/caste/nativity/marks list). Scholarship Portal/Social Welfare Dept-ൽ process ആകണം.` + COMMON_RULES,
+
+  app_water: `കുടിവെള്ള/ഡ്രെയിനേജ് കണക്ഷൻ അപേക്ഷ: ഏത് connection (New/Additional/Repair/Sewerage), Property/House address/Ward, Survey No., owner details, ഇപ്പോഴത്തെ water source, KWA/Municipality pipe line ആ area-ൽ ഉണ്ടോ, application fee/deposit ഇക്കൂടെ attach ചെയ്തതായി reference, Priority (medical/general) reason.` + COMMON_RULES,
+
+  app_road: `റോഡ്/ഇൻഫ്രാ ആവശ്യ അപേക്ഷ: ഏത് road/bridge/streetlight/drain ആവശ്യം, ആ location (Ward/Survey No.), നിലവിലെ situation/problem (photos attach ചെയ്തതായി reference), ബാധിക്കപ്പെടുന്ന ജനങ്ങളുടെ എണ്ണം, ഏതെങ്കിലും estimate/survey ഉണ്ടോ, Grama Panchayat/Municipality standing committee-ൽ include ചെയ്ത് estimate approve ചെയ്യണം.` + COMMON_RULES,
+
   rti_reply: `വിവരാവകാശ മറുപടി (RTI Reply): ഇത് Right to Information Act, 2005 (കേന്ദ്ര നിയമം), Kerala RTI Rules, 2006 എന്നിവ പ്രകാരം State Public Information Officer (SPIO) നൽകുന്ന ഔദ്യോഗിക മറുപടിയാണ്.
 
 നിർബന്ധമായും പാലിക്കേണ്ട ഘടന:
@@ -677,22 +810,35 @@ const FORMAT_GUIDE = {
 };
 
 function buildPrompt(data){
-  return `നീ കേരള സർക്കാർ/തദ്ദേശസ്വയംഭരണ സ്ഥാപനങ്ങളിലെ ഫയൽ എഴുത്തിൽ വിദഗ്ധനായ ഒരു സീനിയർ ഓഫീസ് ഉദ്യോഗസ്ഥനാണ്. താഴെ നൽകുന്ന വിവരങ്ങൾ ഉപയോഗിച്ച് ശരിയായ ഭരണമലയാള ശൈലിയിൽ ഒരു ${TYPE_LABELS[data.docType]} തയ്യാറാക്കുക.
+  const isApp = APP_TYPES.includes(data.docType);
+  const applicantBlock = isApp ? `
+അപേക്ഷകന്റെ വിവരങ്ങൾ:
+- പേര്: ${data.appName || '(നൽകിയിട്ടില്ല)'}
+- വയസ്സ്/ജനനതീയതി: ${data.appAge || '(നൽകിയിട്ടില്ല)'}
+- വിലാസം: ${data.appAddr || '(നൽകിയിട്ടില്ല)'}
+- ഫോൺ: ${data.appPhone || '(നൽകിയിട്ടില്ല)'}
+- ID/Proof: ${data.appId || '(നൽകിയിട്ടില്ല)'}` : '';
+
+  const systemContext = isApp
+    ? 'നീ ഒരു സാധാരണ Kerala പൗരനെ സഹായിക്കുന്ന document expert ആണ്. ആ പൗരൻ ഒരു government/local body office-ൽ അപേക്ഷ നൽകേണ്ടതുണ്ട്. നൽകിയ വിവരങ്ങൾ ഉപയോഗിച്ച് ഉചിതമായ ഭരണമലയാള ശൈലിയിൽ ഒരു ഔദ്യോഗിക അപേക്ഷ തയ്യാറാക്കുക.'
+    : 'നീ കേരള സർക്കാർ/തദ്ദേശസ്വയംഭരണ സ്ഥാപനങ്ങളിലെ ഫയൽ എഴുത്തിൽ വിദഗ്ധനായ ഒരു സീനിയർ ഓഫീസ് ഉദ്യോഗസ്ഥനാണ്. താഴെ നൽകുന്ന വിവരങ്ങൾ ഉപയോഗിച്ച് ശരിയായ ഭരണമലയാള ശൈലിയിൽ ഒരു ${TYPE_LABELS[data.docType]} തയ്യാറാക്കുക.';
+
+  return `${systemContext}
 
 ഈ രേഖാ തരത്തിനുള്ള format നിർദ്ദേശം:
 ${FORMAT_GUIDE[data.docType]}
 
 നൽകിയ വിവരങ്ങൾ:
-- ഓഫീസ്: ${data.officeName || '(നൽകിയിട്ടില്ല)'}
+- ${isApp ? 'Authority/ഓഫീസ്' : 'ഓഫീസ്'}: ${data.officeName || '(നൽകിയിട്ടില്ല)'}
 - വിലാസം: ${data.officeAddr || '(നൽകിയിട്ടില്ല)'}
-- നമ്പർ: ${data.fileNo || '(നൽകിയിട്ടില്ല)'}
+- ${isApp ? 'Application Ref No. (ഐച്ഛികം)' : 'നമ്പർ'}: ${data.fileNo || '(നൽകിയിട്ടില്ല)'}
 - തീയതി: ${data.dateStr || '(നൽകിയിട്ടില്ല)'}
-- സ്വീകർത്താവ്: ${data.toWhom || '(ബാധകമല്ല)'}
+- ${isApp ? 'ആർക്ക് / ഏത് ഓഫീസ്' : 'സ്വീകർത്താവ്'}: ${data.toWhom || '(ബാധകമല്ല)'}
 - വിഷയം: ${data.subject || '(നൽകിയിട്ടില്ല)'}
-- സൂചന: ${data.reference || '(ഇല്ല)'}
-- ${data.docType === 'rti_reply' ? 'വിവരാവകാശ ചോദ്യങ്ങൾ (നമ്പറിട്ടത്)' : 'പ്രധാന കാര്യങ്ങൾ (rough notes)'}: 
+- സൂചന/Reference: ${data.reference || '(ഇല്ല)'}${applicantBlock}
+- ${data.docType === 'rti_reply' ? 'വിവരാവകാശ ചോദ്യങ്ങൾ (നമ്പറിട്ടത്)' : isApp ? 'ആവശ്യം / Details (rough notes)' : 'പ്രധാന കാര്യങ്ങൾ (rough notes)'}: 
 ${data.points || '(നൽകിയിട്ടില്ല)'}
-- ഒപ്പ്: ${data.signName || ''} ${data.signDesig ? '(' + data.signDesig + ')' : ''}
+- ${isApp ? 'അപേക്ഷകൻ' : 'ഒപ്പ്'}: ${data.signName || ''} ${data.signDesig ? '(' + data.signDesig + ')' : ''}
 
 നിർദ്ദേശങ്ങൾ:
 - മുകളിലെ rough പോയിന്റുകൾ ശരിയായ ഔദ്യോഗിക ഖണ്ഡികകളാക്കി മാറ്റുക, വെറുതെ അതേപടി പകർത്തരുത്.
@@ -726,11 +872,21 @@ async function generateLetter(){
     reference: $('reference').value.trim(),
     points: $('points').value.trim(),
     signName: $('signName').value.trim(),
-    signDesig: $('signDesig').value.trim()
+    signDesig: $('signDesig').value.trim(),
+    appName: $('appName').value.trim(),
+    appAge: $('appAge').value.trim(),
+    appAddr: $('appAddr').value.trim(),
+    appPhone: $('appPhone').value.trim(),
+    appId: $('appId').value.trim()
   };
 
+  const isAppType = APP_TYPES.includes(data.docType);
   if(!data.subject || !data.points){
-    showStatus('err', 'വിഷയവും പ്രധാന കാര്യങ്ങളും നിർബന്ധമായും നൽകുക.');
+    showStatus('err', isAppType ? 'വിഷയവും ആവശ്യ വിവരങ്ങളും നിർബന്ധമായും നൽകുക.' : 'വിഷയവും പ്രധാന കാര്യങ്ങളും നിർബന്ധമായും നൽകുക.');
+    return;
+  }
+  if(isAppType && !data.appName){
+    showStatus('err', 'അപേക്ഷകന്റെ പേര് നൽകുക.');
     return;
   }
 
@@ -779,7 +935,7 @@ async function generateLetter(){
     showStatus('err', e.message || 'എന്തോ പിശക് സംഭവിച്ചു.');
   }finally{
     btn.disabled = false;
-    btn.textContent = 'കത്ത് തയ്യാറാക്കുക';
+    btn.textContent = APP_TYPES.includes(docType.value) ? 'അപേക്ഷ തയ്യാറാക്കുക' : 'കത്ത് തയ്യാറാക്കുക';
   }
 }
 
