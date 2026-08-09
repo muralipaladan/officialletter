@@ -261,7 +261,6 @@ Format നിർദ്ദേശം:
 
 
 def generate_letter(api_key: str, model_name: str, data: dict) -> str:
-    # പുതിയ Google GenAI SDK Client ഉപയോഗിക്കുന്നു
     client = genai.Client(api_key=api_key)
     prompt = build_prompt(data)
     
@@ -326,7 +325,6 @@ for key, default in {
     'generated_text': '',
     'edited_text': '',
     'edit_mode': False,
-    'api_key': '',
     'model': 'gemini-3.1-flash',
     'office_name': '',
     'office_addr': '',
@@ -340,29 +338,20 @@ secret_key = st.secrets.get("GEMINI_API_KEY", "") if "GEMINI_API_KEY" in st.secr
 
 # ── Sidebar ──────────────────────────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 🔑 Gemini API")
+    st.markdown("## ⚙️ AI Settings")
 
     with st.container():
-        input_key = st.text_input(
-            "API Key",
-            type="password",
-            value=st.session_state.api_key or secret_key,
-            placeholder="AIza...",
-            help="Secrets-ൽ നൽകിയിട്ടുണ്ടെങ്കിൽ ഇവിടെ നേരിട്ട് ലോഡ് ആകും."
-        )
-        
-        # 3.1 ഉം അതിനു മുകളിലുള്ള മോഡലുകളും മാത്രം ഉൾപ്പെടുത്തിയിരിക്കുന്നു
         model = st.selectbox(
             "Model",
             ["gemini-3.1-flash", "gemini-3.1-pro", "gemini-3.2-flash", "gemini-3.4-flash"],
             index=0
         )
+        st.session_state.model = model
         
-        active_key = input_key or secret_key
-        if active_key:
-            st.session_state.api_key = active_key
-            st.session_state.model = model
-            st.success("✓ API Key Ready", icon="✅")
+        if secret_key:
+            st.success("✓ API Key Ready (Secrets)", icon="✅")
+        else:
+            st.error("⚠️ API Key not found in secrets.toml")
 
     st.divider()
     st.markdown("## 🏢 ഓഫീസ് Defaults")
@@ -381,7 +370,8 @@ with st.sidebar:
     st.markdown("## ℹ️ Help")
     st.caption("""
 **Secrets Setup**:
-`.streamlit/secrets.toml` ഫയലിൽ `GEMINI_API_KEY` ചേർക്കുക.
+നിങ്ങളുടെ project directory-യിലെ `.streamlit/secrets.toml` ഫയലിൽ താഴെ പറയുന്ന രീതിയിൽ API Key ചേർക്കുക:
+`GEMINI_API_KEY = "നിങ്ങളുടെ_key"`
     """)
 
 
@@ -500,9 +490,8 @@ with col_form:
     generate_clicked = st.button(btn_label, type="primary", use_container_width=True)
 
     if generate_clicked:
-        current_api_key = st.session_state.api_key or secret_key
-        if not current_api_key:
-            st.error("⚠️ Sidebar-ലോ Streamlit secrets.toml-ലോ API Key നൽകുക.")
+        if not secret_key:
+            st.error("⚠️ Streamlit secrets.toml-ൽ API Key നൽകിയിട്ടില്ല.")
         elif not subject or not points:
             st.error("⚠️ വിഷയവും details-ഉം നിർബന്ധമാണ്.")
         elif is_app and not app_name:
@@ -528,7 +517,7 @@ with col_form:
             }
             with st.spinner("AI രേഖ തയ്യാറാക്കുന്നു..."):
                 try:
-                    text = generate_letter(current_api_key, st.session_state.model, data)
+                    text = generate_letter(secret_key, st.session_state.model, data)
                     st.session_state.generated_text = text
                     st.session_state.edited_text = text
                     st.session_state.edit_mode = False
