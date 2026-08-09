@@ -1,5 +1,6 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -7,7 +8,6 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import io
 import datetime
-import json
 
 st.set_page_config(
     page_title="ഔദ്യോഗിക രേഖ നിർമ്മാതാവ്",
@@ -93,22 +93,6 @@ body, .stApp { background: #F5F0E8; }
     font-size: .95rem;
 }
 
-/* Editable area */
-.edit-area {
-    width: 100%;
-    min-height: 400px;
-    font-family: 'Noto Serif Malayalam', serif;
-    font-size: 1.05rem;
-    line-height: 2;
-    color: #1a1a1a;
-    border: 2px solid #8C2F39;
-    border-radius: 4px;
-    padding: 40px 48px;
-    resize: vertical;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(140,47,57,.1);
-}
-
 .doc-type-badge {
     background: #FFF3F4;
     border: 1px solid #EFC9C9;
@@ -131,26 +115,6 @@ body, .stApp { background: #F5F0E8; }
     color: white !important;
 }
 
-.sidebar-section {
-    background: rgba(255,255,255,.07);
-    border-radius: 6px;
-    padding: 14px;
-    margin-bottom: 14px;
-}
-
-/* Spinner */
-.generating-msg {
-    background: #FFF8EE;
-    border: 1px solid #F0DEB0;
-    border-radius: 6px;
-    padding: 16px 20px;
-    color: #7A5A1E;
-    font-family: 'Noto Sans Malayalam', sans-serif;
-    font-size: .9rem;
-    margin: 12px 0;
-}
-
-/* Print styles */
 @media print {
     .stSidebar, .stButton, [data-testid="stToolbar"],
     .main-header, .section-card, header, footer { display:none !important; }
@@ -206,8 +170,6 @@ DOC_TYPES = {
 
 APP_TYPES = list(DOC_TYPES["അപേക്ഷകൾ (Public → Office)"].keys())
 NO_RECIPIENT = ['note', 'order', 'sanction', 'memo']
-
-# Flat map for lookups
 ALL_DOC_TYPES = {k: v for group in DOC_TYPES.values() for k, v in group.items()}
 
 COMMON_RULES = """
@@ -299,12 +261,16 @@ Format നിർദ്ദേശം:
 
 
 def generate_letter(api_key: str, model_name: str, data: dict) -> str:
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name)
+    # പുതിയ Google GenAI SDK Client ഉപയോഗിക്കുന്നു
+    client = genai.Client(api_key=api_key)
     prompt = build_prompt(data)
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(temperature=0.4)
+    
+    response = client.models.generate_content(
+        model=model_name,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            temperature=0.4
+        )
     )
     return response.text.strip()
 
@@ -312,14 +278,12 @@ def generate_letter(api_key: str, model_name: str, data: dict) -> str:
 def make_docx(text: str, doc_type_label: str) -> bytes:
     doc = Document()
 
-    # Page margins
     for section in doc.sections:
         section.top_margin = Cm(2.5)
         section.bottom_margin = Cm(2.5)
         section.left_margin = Cm(3)
         section.right_margin = Cm(2.5)
 
-    # Title bar paragraph with border
     title_para = doc.add_paragraph()
     title_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
     title_run = title_para.add_run(f"[{doc_type_label}]")
@@ -337,9 +301,8 @@ def make_docx(text: str, doc_type_label: str) -> bytes:
     pBdr.append(bottom)
     pPr.append(pBdr)
 
-    doc.add_paragraph()  # spacer
+    doc.add_paragraph()
 
-    # Letter content — split by lines
     for line in text.split('\n'):
         p = doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -364,7 +327,7 @@ for key, default in {
     'edited_text': '',
     'edit_mode': False,
     'api_key': '',
-    'model': 'gemini-2.5-flash',
+    'model': 'gemini-3.1-flash',
     'office_name': '',
     'office_addr': '',
 }.items():
@@ -372,31 +335,37 @@ for key, default in {
         st.session_state[key] = default
 
 
+# Streamlit Secrets-ൽ നിന്ന് Key സ്വയം ലോഡ് ചെയ്യുന്നു
+secret_key = st.secrets.get("GEMINI_API_KEY", "") if "GEMINI_API_KEY" in st.secrets else ""
+
 # ── Sidebar ──────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## 🔑 Gemini API")
 
     with st.container():
-        api_key = st.text_input(
+        input_key = st.text_input(
             "API Key",
             type="password",
-            value=st.session_state.api_key,
+            value=st.session_state.api_key or secret_key,
             placeholder="AIza...",
-            help="Google AI Studio → Create API key (സൗജന്യം)"
+            help="Secrets-ൽ നൽകിയിട്ടുണ്ടെങ്കിൽ ഇവിടെ നേരിട്ട് ലോഡ് ആകും."
         )
+        
+        # 3.1 ഉം അതിനു മുകളിലുള്ള മോഡലുകളും മാത്രം ഉൾപ്പെടുത്തിയിരിക്കുന്നു
         model = st.selectbox(
             "Model",
-            ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"],
+            ["gemini-3.1-flash", "gemini-3.1-pro", "gemini-3.2-flash", "gemini-3.4-flash"],
             index=0
         )
-        if api_key:
-            st.session_state.api_key = api_key
+        
+        active_key = input_key or secret_key
+        if active_key:
+            st.session_state.api_key = active_key
             st.session_state.model = model
-            st.success("✓ Key ready", icon="✅")
+            st.success("✓ API Key Ready", icon="✅")
 
     st.divider()
     st.markdown("## 🏢 ഓഫീസ് Defaults")
-    st.caption("ഒരിക്കൽ fill ചെയ്താൽ auto-fill ആകും")
     st.session_state.office_name = st.text_input(
         "ഓഫീസ് പേര്",
         value=st.session_state.office_name,
@@ -411,13 +380,8 @@ with st.sidebar:
     st.divider()
     st.markdown("## ℹ️ Help")
     st.caption("""
-**API Key**: [aistudio.google.com](https://aistudio.google.com/apikey)
-
-**Steps:**
-1. API Key sidebar-ൽ enter ചെയ്യുക
-2. Document type select ചെയ്യുക
-3. Details fill ചെയ്ത് Generate click ചെയ്യുക
-4. Edit → Print / Download .docx
+**Secrets Setup**:
+`.streamlit/secrets.toml` ഫയലിൽ `GEMINI_API_KEY` ചേർക്കുക.
     """)
 
 
@@ -437,7 +401,6 @@ col_form, col_preview = st.columns([1, 1], gap="large")
 # ── Left Column: Form ────────────────────────────────────────────────────
 with col_form:
 
-    # ─ Doc Type ─
     st.markdown('<div class="section-card"><div class="section-title">📋 രേഖയുടെ തരം</div>', unsafe_allow_html=True)
     
     group_options = list(DOC_TYPES.keys())
@@ -454,7 +417,6 @@ with col_form:
 
     is_app = doc_type in APP_TYPES
 
-    # ─ Applicant Card (apps only) ─
     if is_app:
         st.markdown('<div class="section-card"><div class="section-title">👤 അപേക്ഷകന്റെ വിവരങ്ങൾ</div>', unsafe_allow_html=True)
         c1, c2 = st.columns(2)
@@ -468,7 +430,6 @@ with col_form:
     else:
         app_name = app_age = app_addr = app_phone = app_id = ""
 
-    # ─ Office/Authority ─
     st.markdown(f'<div class="section-card"><div class="section-title">🏢 {"Authority / ഓഫീസ്" if is_app else "ഓഫീസ് വിവരങ്ങൾ"}</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     office_name = c1.text_input(
@@ -486,7 +447,6 @@ with col_form:
     date_val = c4.date_input("തീയതി", value=datetime.date.today())
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ─ Recipient ─
     if doc_type not in NO_RECIPIENT:
         to_whom_labels = {
             "letter": "ആർക്ക് (പദവി/ഓഫീസ്)",
@@ -504,7 +464,6 @@ with col_form:
     else:
         to_whom = ""
 
-    # ─ Subject + Content ─
     st.markdown('<div class="section-card"><div class="section-title">📝 വിഷയവും വിവരങ്ങളും</div>', unsafe_allow_html=True)
     subject = st.text_input("വിഷയം *", placeholder="ഉദാ: വാർഡ് 12-ലെ റോഡ് അറ്റകുറ്റപ്പണി സംബന്ധിച്ച്")
     reference = st.text_area(
@@ -528,7 +487,6 @@ with col_form:
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ─ Sign ─
     st.markdown(f'<div class="section-card"><div class="section-title">✍️ {"അപേക്ഷകൻ" if is_app else "ഒപ്പ്"}</div>', unsafe_allow_html=True)
     c1, c2 = st.columns(2)
     sign_name  = c1.text_input("പേര്", placeholder="ഉദാ: കെ. രാജൻ")
@@ -538,13 +496,13 @@ with col_form:
     )
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # ─ Generate Button ─
     btn_label = "⚡ അപേക്ഷ തയ്യാറാക്കുക" if is_app else "⚡ കത്ത് / രേഖ തയ്യാറാക്കുക"
     generate_clicked = st.button(btn_label, type="primary", use_container_width=True)
 
     if generate_clicked:
-        if not st.session_state.api_key:
-            st.error("⚠️ Sidebar-ൽ Gemini API Key നൽകുക.")
+        current_api_key = st.session_state.api_key or secret_key
+        if not current_api_key:
+            st.error("⚠️ Sidebar-ലോ Streamlit secrets.toml-ലോ API Key നൽകുക.")
         elif not subject or not points:
             st.error("⚠️ വിഷയവും details-ഉം നിർബന്ധമാണ്.")
         elif is_app and not app_name:
@@ -570,7 +528,7 @@ with col_form:
             }
             with st.spinner("AI രേഖ തയ്യാറാക്കുന്നു..."):
                 try:
-                    text = generate_letter(st.session_state.api_key, st.session_state.model, data)
+                    text = generate_letter(current_api_key, st.session_state.model, data)
                     st.session_state.generated_text = text
                     st.session_state.edited_text = text
                     st.session_state.edit_mode = False
@@ -594,7 +552,6 @@ with col_preview:
         </div>
         """, unsafe_allow_html=True)
     else:
-        # Action bar
         col_e, col_d, col_p, col_n = st.columns([1.2, 1.5, 1, 1])
         
         edit_label = "✏️ Edit Mode" if not st.session_state.edit_mode else "👁️ Preview"
@@ -602,7 +559,6 @@ with col_preview:
             st.session_state.edit_mode = not st.session_state.edit_mode
             st.rerun()
 
-        # DOCX download
         docx_bytes = make_docx(st.session_state.edited_text, doc_label)
         col_d.download_button(
             "⬇️ Download .docx",
@@ -624,7 +580,6 @@ with col_preview:
         st.markdown(f'<span class="doc-type-badge">{doc_label}</span>', unsafe_allow_html=True)
         st.markdown("")
 
-        # Edit or Preview
         if st.session_state.edit_mode:
             st.caption("✏️ നേരിട്ട് edit ചെയ്യാം — changes auto-save ആകും")
             edited = st.text_area(
@@ -637,7 +592,6 @@ with col_preview:
             if edited != st.session_state.edited_text:
                 st.session_state.edited_text = edited
         else:
-            # Print-ready preview
             safe_text = (st.session_state.edited_text
                         .replace("&", "&amp;")
                         .replace("<", "&lt;")
@@ -690,10 +644,9 @@ with col_preview:
 </html>
 """, height=650, scrolling=True)
 
-        # Character count
         word_count = len(st.session_state.edited_text.split())
         st.caption(f"📊 {word_count} words · {len(st.session_state.edited_text)} characters")
 
 # ── Footer ───────────────────────────────────────────────────────────────
 st.divider()
-st.caption("🔒 API Key browser session-ൽ മാത്രം — server-ൽ store ചെയ്യുന്നില്ല · Kerala Government Document Tool")
+st.caption("🔒 Kerala Government Document Tool · Gemini GenAI SDK Powered")
