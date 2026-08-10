@@ -10,7 +10,7 @@ import datetime
 import re
 
 st.set_page_config(
-    page_title="ഔദ്യോഗിക അപേക്ഷ (OpenRouter)",
+    page_title="ഔദ്യോഗിക അപേക്ഷ (Groq AI)",
     page_icon="📋",
     layout="centered",
     initial_sidebar_state="collapsed"
@@ -36,14 +36,14 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 
 .app-header {
-    background: linear-gradient(135deg, #7B1C28 0%, #5C1520 100%);
+    background: linear-gradient(135deg, #F55036 0%, #C43B26 100%); /* Groq Orange/Red theme */
     border-radius: 10px;
     padding: 22px 28px;
     margin-bottom: 28px;
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: 0 4px 20px rgba(123,28,40,.25);
+    box-shadow: 0 4px 20px rgba(245,80,54,.25);
 }
 .app-header-icon {
     font-size: 2rem;
@@ -58,7 +58,7 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Serif Malayalam', serif;
     font-size: 1.3rem; font-weight: 700; line-height: 1.4;
 }
-.app-header p { margin: 4px 0 0; color: rgba(255,255,255,.75); font-size: .82rem; }
+.app-header p { margin: 4px 0 0; color: rgba(255,255,255,.85); font-size: .82rem; }
 
 .form-card {
     background: white;
@@ -66,13 +66,13 @@ html, body, [data-testid="stAppViewContainer"] {
     padding: 24px 28px;
     margin-bottom: 20px;
     box-shadow: 0 2px 12px rgba(0,0,0,.07);
-    border-top: 3px solid #7B1C28;
+    border-top: 3px solid #F55036;
 }
 .form-section-title {
     font-family: 'Noto Serif Malayalam', serif;
     font-size: .95rem;
     font-weight: 700;
-    color: #7B1C28;
+    color: #F55036;
     margin-bottom: 14px;
     padding-bottom: 8px;
     border-bottom: 1px solid #f0e8e8;
@@ -88,14 +88,14 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 
 [data-testid="stButton"] > button[kind="primary"] {
-    background: linear-gradient(135deg, #7B1C28, #9E2535) !important;
+    background: linear-gradient(135deg, #F55036, #C43B26) !important;
     border: none !important;
     border-radius: 8px !important;
     font-family: 'Noto Sans Malayalam', sans-serif !important;
     font-size: 1rem !important;
     font-weight: 600 !important;
     height: 52px !important;
-    box-shadow: 0 4px 14px rgba(123,28,40,.3) !important;
+    box-shadow: 0 4px 14px rgba(245,80,54,.3) !important;
 }
 
 .secret-badge {
@@ -192,8 +192,8 @@ for k, v in {
     if k not in st.session_state:
         st.session_state[k] = v
 
-# Secrets-ൽ നിന്ന് OpenRouter API Key എടുക്കുന്നു
-secret_key = st.secrets.get("OPENROUTER_API_KEY", "")
+# Secrets-ൽ നിന്ന് Groq API Key എടുക്കുന്നു
+secret_key = st.secrets.get("GROQ_API_KEY", "")
 
 # ── Helper Functions ─────────────────────────────────────────────────────
 def build_prompt(doc_type_key, user_text):
@@ -213,17 +213,17 @@ Format നിർദ്ദേശം:
 {user_text}"""
 
 
-def call_openrouter(api_key, model_name, prompt):
-    # OpenRouter API call using OpenAI Client
+def call_groq(api_key, model_name, prompt):
+    # Groq API call using OpenAI Client
     client = OpenAI(
-        base_url="https://openrouter.ai/api/v1",
+        base_url="https://api.groq.com/openai/v1",
         api_key=api_key,
     )
     
     response = client.chat.completions.create(
         model=model_name,
         messages=[
-            {"role": "system", "content": "You are an expert official letter writer in Malayalam."},
+            {"role": "system", "content": "You are an expert official letter writer in Malayalam. Strictly format the output without markdown symbols."},
             {"role": "user", "content": prompt}
         ],
         temperature=0.3
@@ -245,13 +245,13 @@ def make_docx(text, label):
     tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     tr = tp.add_run(f"[ {label} ]")
     tr.font.size = Pt(8); tr.font.bold = True
-    tr.font.color.rgb = RGBColor(0x7B, 0x1C, 0x28)
+    tr.font.color.rgb = RGBColor(0xF5, 0x50, 0x36) # Groq Orange matching color
     tr.font.name = "Noto Serif Malayalam"
     pPr = tp._p.get_or_add_pPr()
     pBdr = OxmlElement('w:pBdr')
     bot = OxmlElement('w:bottom')
     bot.set(qn('w:val'),'single'); bot.set(qn('w:sz'),'4')
-    bot.set(qn('w:space'),'4');   bot.set(qn('w:color'),'7B1C28')
+    bot.set(qn('w:space'),'4');   bot.set(qn('w:color'),'F55036')
     pBdr.append(bot); pPr.append(pBdr)
     
     doc.add_paragraph()
@@ -271,10 +271,10 @@ def make_docx(text, label):
 # ── Header ───────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="app-header">
-  <div class="app-header-icon">📋</div>
+  <div class="app-header-icon">🚀</div>
   <div>
     <h1>Single Window AI Creator</h1>
-    <p>OpenRouter (DeepSeek & Llama Powered)</p>
+    <p>Powered by Groq (Llama 3.3 & DeepSeek)</p>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -282,10 +282,10 @@ st.markdown("""
 if secret_key:
     st.markdown("""
     <div class="secret-badge">
-      🔒 <span>OpenRouter API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
+      🔒 <span>Groq API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
     </div>""", unsafe_allow_html=True)
 else:
-    st.error("⚠️ secrets.toml-ൽ OPENROUTER_API_KEY നൽകിയിട്ടില്ല.")
+    st.error("⚠️ secrets.toml-ൽ GROQ_API_KEY നൽകിയിട്ടില്ല.")
 
 # ── Form (Single Window) ─────────────────────────────────────────────────
 st.markdown('<div class="form-card">', unsafe_allow_html=True)
@@ -303,12 +303,12 @@ user_input = st.text_area(
     label_visibility="collapsed"
 )
 
-# OpenRouter-ൽ സൗജന്യമായി ലഭിക്കുന്ന മികച്ച മോഡലുകൾ
+# Groq-ൽ സൗജന്യമായി ലഭിക്കുന്ന മികച്ച മോഡലുകൾ
 model_options = {
-    "DeepSeek R1 (Free)": "deepseek/deepseek-r1:free",
-    "Llama 3.3 70B (Free)": "meta-llama/llama-3.3-70b-instruct:free",
-    "DeepSeek Chat V3 (Free)": "deepseek/deepseek-chat:free",
-    "Qwen 2.5 72B (Free)": "qwen/qwen-2.5-72b-instruct:free"
+    "Llama 3.3 70B (Fast & Smart)": "llama-3.3-70b-versatile",
+    "DeepSeek R1 (Reasoning)": "deepseek-r1-distill-llama-70b",
+    "Mixtral 8x7B (Balanced)": "mixtral-8x7b-32768",
+    "Gemma 2 9B (Google)": "gemma2-9b-it"
 }
 
 selected_model_name = st.selectbox(
@@ -325,14 +325,14 @@ gen_btn = st.button("⚡ രേഖ തയ്യാറാക്കുക", type="
 
 if gen_btn:
     if not secret_key:
-        st.error("⚠️ OpenRouter API Key ലഭ്യമല്ല.")
+        st.error("⚠️ Groq API Key ലഭ്യമല്ല.")
     elif not user_input.strip():
         st.error("⚠️ ദയവായി വിവരങ്ങൾ ടെക്സ്റ്റ് ബോക്സിൽ നൽകുക.")
     else:
         with st.spinner(f"AI ({selected_model_name}) രേഖ തയ്യാറാക്കുന്നു..."):
             try:
                 prompt = build_prompt(doc_type, user_input)
-                result = call_openrouter(secret_key, model_code, prompt)
+                result = call_groq(secret_key, model_code, prompt)
                 
                 st.session_state.output = result
                 st.session_state.edit_mode = False
@@ -405,7 +405,7 @@ body{{background:#f0ebe0;padding:12px;font-size:14px}}
 }}
 .sheet::before{{
   content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:linear-gradient(90deg,#7B1C28,#A9812F);
+  background:linear-gradient(90deg,#F55036,#C43B26);
   border-radius:8px 8px 0 0;
 }}
 @media print{{
@@ -421,4 +421,4 @@ body{{background:#f0ebe0;padding:12px;font-size:14px}}
         st.caption(f"📊 {wc} words · {len(st.session_state.output)} chars")
 
 st.markdown("---")
-st.caption("🔒 OpenRouter API Powered · Single Window Creator")
+st.caption("🔒 Groq API Powered · Fast & Free Single Window Creator")
