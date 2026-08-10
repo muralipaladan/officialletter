@@ -8,7 +8,6 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import io
 import datetime
-import time
 
 st.set_page_config(
     page_title="ഔദ്യോഗിക അപേക്ഷ",
@@ -321,10 +320,10 @@ user_input = st.text_area(
     label_visibility="collapsed"
 )
 
-# Model Selection - 3.5 മുതലുള്ളവ
+# മോഡലുകൾ നിലവിൽ ലഭ്യമായവ മാത്രം ഉൾപ്പെടുത്തി തിരുത്തിയിരിക്കുന്നു
 model_name = st.selectbox(
     "AI Model",
-    ["gemini-3.5-flash", "gemini-3.5-pro", "gemini-4.0-flash"],
+    ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-pro"],
     index=0
 )
 
