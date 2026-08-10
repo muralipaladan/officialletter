@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── Custom CSS ───────────────────────────────────────────────────────────
+# ── Custom CSS with Improved Text Contrast & Matching UI Colors ──────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -24,6 +24,7 @@ st.markdown("""
 html, body, [data-testid="stAppViewContainer"] {
     background: #f0ebe0 !important;
     font-family: 'Noto Sans Malayalam', sans-serif;
+    color: #2C3E50 !important;
 }
 
 #MainMenu, footer, header { visibility: hidden; }
@@ -58,7 +59,7 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Serif Malayalam', serif;
     font-size: 1.3rem; font-weight: 700; line-height: 1.4;
 }
-.app-header p { margin: 4px 0 0; color: rgba(255,255,255,.75); font-size: .82rem; }
+.app-header p { margin: 4px 0 0; color: rgba(255,255,255,.85); font-size: .82rem; }
 
 /* Card Design */
 .form-card {
@@ -71,12 +72,18 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 .form-section-title {
     font-family: 'Noto Serif Malayalam', serif;
-    font-size: 1rem;
+    font-size: 1.05rem;
     font-weight: 700;
     color: #1A4D2E;
     margin-bottom: 14px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #f0e8e8;
+    border-bottom: 2px solid #e2ebd8;
+}
+
+/* Streamlit Labels High Contrast */
+.stSelectbox label, .stTextArea label, .stTextInput label {
+    color: #1A4D2E !important;
+    font-weight: 600 !important;
 }
 
 /* Input Fields Styling */
@@ -84,14 +91,17 @@ html, body, [data-testid="stAppViewContainer"] {
 [data-testid="stSelectbox"] > div > div,
 [data-testid="stTextInput"] input {
     border-radius: 6px !important;
-    border-color: #ccc !important;
+    border-color: #b8c5b9 !important;
     font-family: 'Noto Sans Malayalam', sans-serif !important;
     font-size: 0.92rem !important;
+    color: #2C3E50 !important;
+    background-color: #faf8f5 !important;
 }
 [data-testid="stTextArea"] textarea:focus,
 [data-testid="stTextInput"] input:focus {
     border-color: #1A4D2E !important;
     box-shadow: 0 0 0 2px rgba(26,77,46,0.15) !important;
+    background-color: #ffffff !important;
 }
 
 /* Primary Button */
@@ -105,6 +115,7 @@ html, body, [data-testid="stAppViewContainer"] {
     height: 52px !important;
     box-shadow: 0 4px 14px rgba(26,77,46,.3) !important;
     width: 100% !important;
+    color: white !important;
 }
 
 /* Sidebar styling */
@@ -112,16 +123,17 @@ html, body, [data-testid="stAppViewContainer"] {
     background-color: #11301c;
 }
 [data-testid="stSidebar"] * {
-    color: white !important;
+    color: #ffffff !important;
 }
 .sidebar-info {
     font-size: 0.85rem;
     line-height: 1.6;
     color: #d1e8d5 !important;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.25);
     padding: 15px;
     border-radius: 8px;
     margin-top: 15px;
+    border-left: 3px solid #81c784;
 }
 .sidebar-info a {
     color: #81c784 !important;
@@ -186,7 +198,7 @@ with st.sidebar:
 
     st.markdown("""
     <div class="sidebar-info">
-        <h3 style="margin-bottom: 8px; color: #fff; font-size: 0.95rem;">❓ API Key എങ്ങനെ ലഭിക്കും?</h3>
+        <h3 style="margin-bottom: 8px; color: #ffffff !important; font-size: 0.95rem;">❓ API Key എങ്ങനെ ലഭിക്കും?</h3>
         <ol style="padding-left: 15px; margin-bottom: 0;">
             <li><a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> സന്ദർശിക്കുക.</li>
             <li>Google Account വഴി ലോഗിൻ ചെയ്യുക.</li>
@@ -286,7 +298,7 @@ with col_t:
 with col_l:
     doc_language = st.selectbox("ഭാഷ (Language)", ["Malayalam", "English"])
 
-st.markdown('<div class="form-section-title" style="margin-top: 20px;">📝 വിലാസവും വിവരങ്ങളും നൽകുക</div>', unsafe_allow_html=True)
+st.markdown('<div class="form-section-title" style="margin-top: 25px;">📝 വിലാസവും വിവരങ്ങളും നൽകുക</div>', unsafe_allow_html=True)
 
 c1, c2 = st.columns(2)
 with c1:
@@ -308,7 +320,6 @@ details = st.text_area(
     height=150
 )
 
-# Custom Model Entry (Gemini 2.5 and above compliant)
 model_name = st.text_input(
     "AI Model Name (ഫ്യൂച്ചർ അപ്ഡേറ്റുകൾക്കായി ടൈപ്പ് ചെയ്യാം)",
     value="gemini-2.5-flash",
