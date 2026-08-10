@@ -13,9 +13,10 @@ st.set_page_config(
     page_title="Smart Document Creator",
     page_icon="📋",
     layout="centered",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
+# ── Custom CSS ───────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -25,14 +26,16 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Sans Malayalam', sans-serif;
 }
 
+/* Hide streamlit default chrome */
 #MainMenu, footer, header { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
 
 .block-container {
-    max-width: 780px !important;
+    max-width: 800px !important;
     padding: 2rem 1.5rem 4rem !important;
 }
 
+/* App header */
 .app-header {
     background: linear-gradient(135deg, #1A4D2E 0%, #0F2C1A 100%);
     border-radius: 10px;
@@ -58,6 +61,7 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 .app-header p { margin: 4px 0 0; color: rgba(255,255,255,.75); font-size: .82rem; }
 
+/* Form card */
 .form-card {
     background: white;
     border-radius: 10px;
@@ -77,18 +81,22 @@ html, body, [data-testid="stAppViewContainer"] {
     display: flex; align-items: center; gap: 8px;
 }
 
+/* Streamlit input overrides */
 [data-testid="stTextArea"] textarea,
-[data-testid="stSelectbox"] > div > div {
+[data-testid="stSelectbox"] > div > div,
+[data-testid="stTextInput"] input {
     border-radius: 6px !important;
     border-color: #ddd !important;
     font-family: 'Noto Sans Malayalam', sans-serif !important;
     font-size: .92rem !important;
 }
-[data-testid="stTextArea"] textarea:focus {
+[data-testid="stTextArea"] textarea:focus,
+[data-testid="stTextInput"] input:focus {
     border-color: #1A4D2E !important;
     box-shadow: 0 0 0 2px rgba(26,77,46,.12) !important;
 }
 
+/* Generate button */
 [data-testid="stButton"] > button[kind="primary"] {
     background: linear-gradient(135deg, #1A4D2E, #2A7347) !important;
     border: none !important;
@@ -100,26 +108,34 @@ html, body, [data-testid="stAppViewContainer"] {
     box-shadow: 0 4px 14px rgba(26,77,46,.3) !important;
 }
 
-.secret-badge {
-    background: #e8f5e9;
-    border: 1px solid #a5d6a7;
-    border-radius: 6px;
-    padding: 8px 14px;
-    color: #2e7d32;
-    font-size: .83rem;
-    display: flex; align-items: center; gap: 6px;
-    margin-bottom: 12px;
+/* Sidebar Customization */
+[data-testid="stSidebar"] {
+    background-color: #11301c;
+}
+[data-testid="stSidebar"] * {
+    color: white !important;
+}
+.sidebar-info {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #d1e8d5 !important;
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
+.sidebar-info a {
+    color: #81c784 !important;
 }
 
 @media print {
     .app-header, .form-card, [data-testid="stButton"],
-    .action-bar, [data-testid="stAlert"] { display: none !important; }
+    .action-bar, [data-testid="stAlert"], [data-testid="stSidebar"] { display: none !important; }
 }
 </style>
 """, unsafe_allow_html=True)
 
 # ── Constants ────────────────────────────────────────────────────────────
-
 DOC_GROUPS = {
     "📨 കത്തുകൾ (Letters)": {
         "letter":     "ഔദ്യോഗിക കത്ത് (Official Letter)",
@@ -186,8 +202,46 @@ for k, v in {
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ── API Key: secrets ─────────────────────────────────────────────────────
-secret_key = st.secrets.get("GEMINI_API_KEY", "")
+# ── Sidebar: API Key Setup ───────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("## 🔑 API Key Setup")
+    
+    # Try to load from secrets if available
+    secret_key = st.secrets.get("GEMINI_API_KEY", "")
+    
+    user_api_key = st.text_input(
+        "Google Gemini API Key", 
+        type="password", 
+        value=secret_key,
+        placeholder="AIzaSy..."
+    )
+    
+    active_api_key = user_api_key or secret_key
+
+    if active_api_key:
+        st.success("✅ API Key Ready!")
+    
+    st.markdown("""
+    <div class="sidebar-info">
+        <h3 style="margin-bottom: 10px; color: #fff;">❓ API Key എങ്ങനെ ലഭിക്കും?</h3>
+        <ol style="padding-left: 15px; margin-bottom: 0;">
+            <li><a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> സന്ദർശിക്കുക.</li>
+            <li>Google Account വഴി ലോഗിൻ ചെയ്യുക.</li>
+            <li>"Create API Key" ക്ലിക്ക് ചെയ്യുക.</li>
+            <li>ലഭിക്കുന്ന Key കോപ്പി ചെയ്ത് മുകളിലെ ബോക്സിൽ നൽകുക.</li>
+        </ol>
+    </div>
+    
+    <div class="sidebar-info">
+        <h3 style="margin-bottom: 10px; color: #fff;">📄 ഈ സൈറ്റിലെ സേവനങ്ങൾ</h3>
+        <ul style="padding-left: 15px; margin-bottom: 0;">
+            <li>സർക്കാർ ഓഫീസുകളിലേക്കുള്ള അപേക്ഷകൾ</li>
+            <li>വിവരാവകാശ രേഖകൾ (RTI)</li>
+            <li>ഔദ്യോഗിക കത്തുകൾ</li>
+            <li>പരാതികൾ, അവധി അപേക്ഷകൾ</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
 # ── Functions ────────────────────────────────────────────────────────────
 def build_prompt(doc_type_key, from_addr, to_addr, details, language):
@@ -267,7 +321,7 @@ def make_docx(text, label):
     return buf.getvalue()
 
 
-# ── Header ───────────────────────────────────────────────────────────────
+# ── Main UI Header ───────────────────────────────────────────────────────
 st.markdown("""
 <div class="app-header">
   <div class="app-header-icon">📋</div>
@@ -278,15 +332,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-if secret_key:
-    st.markdown("""
-    <div class="secret-badge">
-      🔒 <span>API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
-    </div>""", unsafe_allow_html=True)
-else:
-    st.error("⚠️ Streamlit secrets.toml-ൽ API Key നൽകിയിട്ടില്ല.")
-
-# ── Form ─────────────────────────────────────────────────────────────────
+# ── Form Input Section ───────────────────────────────────────────────────
 st.markdown('<div class="form-card">', unsafe_allow_html=True)
 
 # 1. Document Type & Language Selection
@@ -298,7 +344,6 @@ with c2:
     type_map  = DOC_GROUPS[group_sel]
     doc_type  = st.selectbox("രേഖയുടെ തരം (Type)", list(type_map.keys()), format_func=lambda x: type_map[x], label_visibility="collapsed")
 with c3:
-    # ഭാഷ തിരഞ്ഞെടുക്കാനുള്ള ഓപ്ഷൻ
     doc_language = st.selectbox("ഭാഷ (Language)", ["Malayalam", "English"], label_visibility="collapsed")
 
 # 2. Details Input Windows
@@ -342,18 +387,16 @@ st.markdown('</div>', unsafe_allow_html=True)
 gen_btn = st.button(f"⚡ രേഖ തയ്യാറാക്കുക ({doc_language})", type="primary", use_container_width=True)
 
 if gen_btn:
-    if not secret_key:
-        st.error("⚠️ API Key ലഭ്യമല്ല.")
+    if not active_api_key:
+        st.error("⚠️ ദയവായി ഇടത് വശത്ത് (Sidebar) API Key നൽകുക.")
     elif not details.strip():
         st.error("⚠️ ദയവായി വിഷയവും വിവരങ്ങളും നൽകുക.")
     else:
         with st.spinner(f"AI ({ALL_TYPES[doc_type]}) തയ്യാറാക്കുന്നു..."):
             try:
-                # പാസാക്കുന്ന വിവരങ്ങളിൽ ഭാഷ കൂടി നൽകുന്നു
                 prompt = build_prompt(doc_type, from_addr, to_addr, details, doc_language)
-                result = call_gemini(secret_key, model_name, prompt)
+                result = call_gemini(active_api_key, model_name, prompt)
                 
-                # ഹെഡറിലെ ലേബൽ ഇംഗ്ലീഷാണെങ്കിൽ മാറ്റുന്നു
                 final_label = ALL_TYPES.get(doc_type, '') if doc_language == "Malayalam" else "Official Document"
 
                 st.session_state.output = result
@@ -362,9 +405,13 @@ if gen_btn:
                 st.session_state.docx_cache = make_docx(result, final_label)
                 st.rerun()
             except Exception as e:
-                st.error(f"❌ Error: {e}")
+                error_msg = str(e)
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                    st.error("⚠️ API ലിമിറ്റ് കഴിഞ്ഞിരിക്കുന്നു. ദയവായി കുറച്ചുസമയം കാത്തിരിക്കുക അല്ലെങ്കിൽ 'Flash' മോഡലുകൾ ഉപയോഗിക്കുക.")
+                else:
+                    st.error(f"❌ Error: {e}")
 
-# ── Output ────────────────────────────────────────────────────────────────
+# ── Output Section ────────────────────────────────────────────────────────
 if st.session_state.output:
     doc_label = st.session_state.doc_label or ALL_TYPES.get(doc_type, "")
 
@@ -441,6 +488,3 @@ body{{background:#f0ebe0;padding:12px;font-size:14px}}
 
         wc = len(st.session_state.output.split())
         st.caption(f"📊 {wc} words · {len(st.session_state.output)} chars")
-
-st.markdown("---")
-st.caption("🔒 API Key session-ൽ മാത്രം · Smart Document Creator")
