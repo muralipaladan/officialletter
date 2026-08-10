@@ -1,6 +1,5 @@
 import streamlit as st
-from google import genai
-from google.genai import types
+from openai import OpenAI
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -8,14 +7,16 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import io
 import datetime
+import re
 
 st.set_page_config(
-    page_title="ഔദ്യോഗിക അപേക്ഷ",
+    page_title="ഔദ്യോഗിക അപേക്ഷ (OpenRouter)",
     page_icon="📋",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
+# ── Styles ──────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -25,18 +26,15 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Sans Malayalam', sans-serif;
 }
 
-/* Hide streamlit chrome */
 #MainMenu, footer, header { visibility: hidden; }
 [data-testid="stToolbar"] { display: none; }
 [data-testid="collapsedControl"] { display: none; }
 
-/* App wrapper */
 .block-container {
     max-width: 780px !important;
     padding: 2rem 1.5rem 4rem !important;
 }
 
-/* App header */
 .app-header {
     background: linear-gradient(135deg, #7B1C28 0%, #5C1520 100%);
     border-radius: 10px;
@@ -62,7 +60,6 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 .app-header p { margin: 4px 0 0; color: rgba(255,255,255,.75); font-size: .82rem; }
 
-/* Form card */
 .form-card {
     background: white;
     border-radius: 10px;
@@ -82,7 +79,6 @@ html, body, [data-testid="stAppViewContainer"] {
     display: flex; align-items: center; gap: 8px;
 }
 
-/* Streamlit input overrides */
 [data-testid="stTextArea"] textarea,
 [data-testid="stSelectbox"] > div > div {
     border-radius: 6px !important;
@@ -90,12 +86,7 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Sans Malayalam', sans-serif !important;
     font-size: .92rem !important;
 }
-[data-testid="stTextArea"] textarea:focus {
-    border-color: #7B1C28 !important;
-    box-shadow: 0 0 0 2px rgba(123,28,40,.12) !important;
-}
 
-/* Generate button */
 [data-testid="stButton"] > button[kind="primary"] {
     background: linear-gradient(135deg, #7B1C28, #9E2535) !important;
     border: none !important;
@@ -105,19 +96,8 @@ html, body, [data-testid="stAppViewContainer"] {
     font-weight: 600 !important;
     height: 52px !important;
     box-shadow: 0 4px 14px rgba(123,28,40,.3) !important;
-    transition: all .2s !important;
-}
-[data-testid="stButton"] > button[kind="primary"]:hover {
-    transform: translateY(-1px) !important;
-    box-shadow: 0 6px 20px rgba(123,28,40,.4) !important;
-}
-[data-testid="stButton"] > button[kind="secondary"] {
-    border-radius: 6px !important;
-    font-family: 'Noto Sans Malayalam', sans-serif !important;
-    font-size: .88rem !important;
 }
 
-/* Secret key badge */
 .secret-badge {
     background: #e8f5e9;
     border: 1px solid #a5d6a7;
@@ -132,12 +112,6 @@ html, body, [data-testid="stAppViewContainer"] {
 @media print {
     .app-header, .form-card, [data-testid="stButton"],
     .action-bar, [data-testid="stAlert"] { display: none !important; }
-    .letter-output {
-        box-shadow: none !important;
-        border: none !important;
-        padding: 0 !important;
-    }
-    .letter-output::after { display: none !important; }
 }
 </style>
 """, unsafe_allow_html=True)
@@ -210,19 +184,18 @@ FORMAT_GUIDES = {
     "app_road":    "Location/Ward, problem, affected count, estimate/survey, priority",
 }
 
-# ── Session State ────────────────────────────────────────────────────────
+# ── Session State Init ───────────────────────────────────────────────────
 for k, v in {
     'output': '', 'edit_mode': False,
-    'generating': False, 'doc_label': '',
-    'docx_cache': None,
+    'doc_label': '', 'docx_cache': None,
 }.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ── API Key: secrets ─────────────────────────────────────────────────────
-secret_key = st.secrets.get("GEMINI_API_KEY", "")
+# Secrets-ൽ നിന്ന് OpenRouter API Key എടുക്കുന്നു
+secret_key = st.secrets.get("OPENROUTER_API_KEY", "")
 
-# ── Functions ────────────────────────────────────────────────────────────
+# ── Helper Functions ─────────────────────────────────────────────────────
 def build_prompt(doc_type_key, user_text):
     doc_label = ALL_TYPES[doc_type_key]
     format_guide = FORMAT_GUIDES[doc_type_key]
@@ -240,16 +213,26 @@ Format നിർദ്ദേശം:
 {user_text}"""
 
 
-def call_gemini(api_key, model_name, prompt):
-    client = genai.Client(api_key=api_key)
-    response = client.models.generate_content(
-        model=model_name,
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            temperature=0.35
-        )
+def call_openrouter(api_key, model_name, prompt):
+    # OpenRouter API call using OpenAI Client
+    client = OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=api_key,
     )
-    return response.text.strip()
+    
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=[
+            {"role": "system", "content": "You are an expert official letter writer in Malayalam."},
+            {"role": "user", "content": prompt}
+        ],
+        temperature=0.3
+    )
+    
+    raw_text = response.choices[0].message.content
+    # DeepSeek R1-ലെ <think>...</think> ഭാഗങ്ങൾ മായ്ച്ചു കളയുന്നു
+    cleaned_text = re.sub(r'<think>.*?</think>', '', raw_text, flags=re.DOTALL)
+    return cleaned_text.strip()
 
 
 def make_docx(text, label):
@@ -291,7 +274,7 @@ st.markdown("""
   <div class="app-header-icon">📋</div>
   <div>
     <h1>Single Window AI Creator</h1>
-    <p>ഭരണഭാഷ &nbsp;·&nbsp; മാതൃഭാഷ</p>
+    <p>OpenRouter (DeepSeek & Llama Powered)</p>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -299,10 +282,10 @@ st.markdown("""
 if secret_key:
     st.markdown("""
     <div class="secret-badge">
-      🔒 <span>API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
+      🔒 <span>OpenRouter API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
     </div>""", unsafe_allow_html=True)
 else:
-    st.error("⚠️ Streamlit secrets.toml-ൽ API Key നൽകിയിട്ടില്ല.")
+    st.error("⚠️ secrets.toml-ൽ OPENROUTER_API_KEY നൽകിയിട്ടില്ല.")
 
 # ── Form (Single Window) ─────────────────────────────────────────────────
 st.markdown('<div class="form-card">', unsafe_allow_html=True)
@@ -320,12 +303,20 @@ user_input = st.text_area(
     label_visibility="collapsed"
 )
 
-# മോഡലുകൾ നിലവിൽ ലഭ്യമായവ മാത്രം ഉൾപ്പെടുത്തി തിരുത്തിയിരിക്കുന്നു
-model_name = st.selectbox(
-    "AI Model",
-    ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-pro"],
+# OpenRouter-ൽ സൗജന്യമായി ലഭിക്കുന്ന മികച്ച മോഡലുകൾ
+model_options = {
+    "DeepSeek R1 (Free)": "deepseek/deepseek-r1:free",
+    "Llama 3.3 70B (Free)": "meta-llama/llama-3.3-70b-instruct:free",
+    "DeepSeek Chat V3 (Free)": "deepseek/deepseek-chat:free",
+    "Qwen 2.5 72B (Free)": "qwen/qwen-2.5-72b-instruct:free"
+}
+
+selected_model_name = st.selectbox(
+    "AI Model Select ചെയ്യുക",
+    list(model_options.keys()),
     index=0
 )
+model_code = model_options[selected_model_name]
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -334,14 +325,14 @@ gen_btn = st.button("⚡ രേഖ തയ്യാറാക്കുക", type="
 
 if gen_btn:
     if not secret_key:
-        st.error("⚠️ API Key ലഭ്യമല്ല.")
+        st.error("⚠️ OpenRouter API Key ലഭ്യമല്ല.")
     elif not user_input.strip():
         st.error("⚠️ ദയവായി വിവരങ്ങൾ ടെക്സ്റ്റ് ബോക്സിൽ നൽകുക.")
     else:
-        with st.spinner("AI രേഖ തയ്യാറാക്കുന്നു..."):
+        with st.spinner(f"AI ({selected_model_name}) രേഖ തയ്യാറാക്കുന്നു..."):
             try:
                 prompt = build_prompt(doc_type, user_input)
-                result = call_gemini(secret_key, model_name, prompt)
+                result = call_openrouter(secret_key, model_code, prompt)
                 
                 st.session_state.output = result
                 st.session_state.edit_mode = False
@@ -430,4 +421,4 @@ body{{background:#f0ebe0;padding:12px;font-size:14px}}
         st.caption(f"📊 {wc} words · {len(st.session_state.output)} chars")
 
 st.markdown("---")
-st.caption("🔒 API Key session-ൽ മാത്രം · Single Window Document Creator")
+st.caption("🔒 OpenRouter API Powered · Single Window Creator")
