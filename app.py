@@ -10,12 +10,13 @@ import io
 import datetime
 
 st.set_page_config(
-    page_title="Smart Document Creator",
-    page_icon="🤖",
+    page_title="Smart Document Writing Tool",
+    page_icon="📋",
     layout="centered",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
+# ── Custom CSS for HTML-like Styling in Streamlit ────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -29,10 +30,11 @@ html, body, [data-testid="stAppViewContainer"] {
 [data-testid="stToolbar"] { display: none; }
 
 .block-container {
-    max-width: 780px !important;
+    max-width: 800px !important;
     padding: 2rem 1.5rem 4rem !important;
 }
 
+/* App Header */
 .app-header {
     background: linear-gradient(135deg, #1A4D2E 0%, #0F2C1A 100%);
     border-radius: 10px;
@@ -58,69 +60,106 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 .app-header p { margin: 4px 0 0; color: rgba(255,255,255,.75); font-size: .82rem; }
 
+/* Card Design */
 .form-card {
     background: white;
     border-radius: 10px;
     padding: 24px 28px;
     margin-bottom: 20px;
     box-shadow: 0 2px 12px rgba(0,0,0,.07);
-    border-top: 3px solid #1A4D2E;
+    border-top: 4px solid #1A4D2E;
 }
 .form-section-title {
     font-family: 'Noto Serif Malayalam', serif;
-    font-size: .95rem;
+    font-size: 1rem;
     font-weight: 700;
     color: #1A4D2E;
     margin-bottom: 14px;
     padding-bottom: 8px;
     border-bottom: 1px solid #f0e8e8;
-    display: flex; align-items: center; gap: 8px;
 }
 
+/* Input Fields Styling */
 [data-testid="stTextArea"] textarea,
 [data-testid="stSelectbox"] > div > div,
 [data-testid="stTextInput"] input {
     border-radius: 6px !important;
-    border-color: #ddd !important;
+    border-color: #ccc !important;
     font-family: 'Noto Sans Malayalam', sans-serif !important;
-    font-size: .92rem !important;
+    font-size: 0.92rem !important;
 }
 [data-testid="stTextArea"] textarea:focus,
 [data-testid="stTextInput"] input:focus {
     border-color: #1A4D2E !important;
-    box-shadow: 0 0 0 2px rgba(26,77,46,.12) !important;
+    box-shadow: 0 0 0 2px rgba(26,77,46,0.15) !important;
 }
 
+/* Primary Button */
 [data-testid="stButton"] > button[kind="primary"] {
     background: linear-gradient(135deg, #1A4D2E, #2A7347) !important;
     border: none !important;
     border-radius: 8px !important;
     font-family: 'Noto Sans Malayalam', sans-serif !important;
-    font-size: 1rem !important;
+    font-size: 1.05rem !important;
     font-weight: 600 !important;
     height: 52px !important;
     box-shadow: 0 4px 14px rgba(26,77,46,.3) !important;
+    width: 100% !important;
 }
 
-.secret-badge {
-    background: #e8f5e9;
-    border: 1px solid #a5d6a7;
-    border-radius: 6px;
-    padding: 8px 14px;
-    color: #2e7d32;
-    font-size: .83rem;
-    display: flex; align-items: center; gap: 6px;
-    margin-bottom: 12px;
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background-color: #11301c;
 }
-
-@media print {
-    .app-header, .form-card, [data-testid="stButton"],
-    .action-bar, [data-testid="stAlert"] { display: none !important; }
+[data-testid="stSidebar"] * {
+    color: white !important;
+}
+.sidebar-info {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #d1e8d5 !important;
+    background: rgba(0,0,0,0.2);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+.sidebar-info a {
+    color: #81c784 !important;
 }
 </style>
 """, unsafe_allow_html=True)
 
-# ── Session State ────────────────────────────────────────────────────────
+# ── Document Types Dictionary ────────────────────────────────────────────
+DOC_GROUPS = {
+    "📝 അപേക്ഷകൾ (Applications)": {
+        "app_general": "പൊതു അപേക്ഷ (General Application)",
+        "app_income": "വരുമാന Certificate അപേക്ഷ",
+        "app_nativity": "ജനന/നാട്ടുകാർ Certificate",
+        "app_residence": "താമസ Certificate",
+        "app_caste": "ജാതി Certificate",
+        "app_noc": "NOC അപേക്ഷ",
+        "app_building": "കെട്ടിട അനുമതി അപേക്ഷ",
+        "app_pension": "പെൻഷൻ/ആനുകൂല്യം",
+        "app_leave": "അവധി അപേക്ഷ (Leave Letter)",
+        "app_complaint": "പരാതി (Complaint)"
+    },
+    "📨 ഔദ്യോഗിക കത്തുകൾ (Official Letters)": {
+        "letter": "ഔദ്യോഗിക കത്ത് (Official Letter)",
+        "do_letter": "അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter)",
+        "forwarding": "അയക്കൽ കത്ത് (Forwarding Letter)",
+        "reminder": "ഓർമ്മപ്പെടുത്തൽ (Reminder Letter)"
+    },
+    "📜 ഉത്തരവുകൾ & അറിയിപ്പുകൾ (Orders & Notices)": {
+        "order": "ഉത്തരവ് (Government Order)",
+        "circular": "സർക്കുലർ (Circular)",
+        "public_notice": "പൊതു അറിയിപ്പ് (Public Notice)",
+        "rti_reply": "വിവരാവകാശ രേഖ / മറുപടി (RTI)"
+    }
+}
+
+ALL_TYPES = {k: v for g in DOC_GROUPS.values() for k, v in g.items()}
+
+# ── Session State Initialization ─────────────────────────────────────────
 for k, v in {
     'output': '', 'edit_mode': False,
     'docx_cache': None,
@@ -128,34 +167,74 @@ for k, v in {
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ── API Key: secrets ─────────────────────────────────────────────────────
-secret_key = st.secrets.get("GEMINI_API_KEY", "")
+# ── Sidebar: API Key & Info ──────────────────────────────────────────────
+with st.sidebar:
+    st.markdown("## 🔑 API Key Setup")
+    secret_key = st.secrets.get("GEMINI_API_KEY", "")
+    
+    user_api_key = st.text_input(
+        "Google Gemini API Key", 
+        type="password", 
+        value=secret_key,
+        placeholder="AIzaSy..."
+    )
+    active_api_key = user_api_key or secret_key
 
-# ── Master Prompt Function ───────────────────────────────────────────────
-def build_smart_prompt(preshitan, sweekarthavu, details):
-    return f"""നീ കേരള സർക്കാരിന്റെ ഔദ്യോഗിക ഫയലുകൾ, അപേക്ഷകൾ, വിവരാവകാശ രേഖകൾ (RTI) എന്നിവ തയ്യാറാക്കുന്നതിൽ അഗാധമായ അറിവുള്ള ഒരു 'Senior Section Officer' ആണ്. 
-താഴെ നൽകിയിരിക്കുന്ന വിവരങ്ങൾ വായിച്ച് മനസ്സിലാക്കി, ഉപയോക്താവിന് വേണ്ടത് ഒരു 'അപേക്ഷ' (Application) ആണോ, 'വിവരാവകാശ രേഖ' (RTI) ആണോ, അതോ ഒരു 'ഔദ്യോഗിക കത്ത്' (Official Letter) ആണോ എന്ന് നീ സ്വയം തിരിച്ചറിയുക.
+    if active_api_key:
+        st.success("✅ API Key Ready!")
+    else:
+        st.warning("⚠️ API Key നൽകുക.")
 
-ഏറ്റവും മികച്ച, നിയമപരമായി ശരിയായ ഔദ്യോഗിക ഭരണമലയാള (Official Malayalam) ശൈലിയിൽ ഈ രേഖ തയ്യാറാക്കുക.
+    st.markdown("""
+    <div class="sidebar-info">
+        <h3 style="margin-bottom: 8px; color: #fff; font-size: 0.95rem;">❓ API Key എങ്ങനെ ലഭിക്കും?</h3>
+        <ol style="padding-left: 15px; margin-bottom: 0;">
+            <li><a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> സന്ദർശിക്കുക.</li>
+            <li>Google Account വഴി ലോഗിൻ ചെയ്യുക.</li>
+            <li>"Create API Key" ക്ലിക്ക് ചെയ്ത് കോപ്പി ചെയ്യുക.</li>
+        </ol>
+    </div>
+    
+    <div class="sidebar-info">
+        <h3 style="margin-bottom: 8px; color: #fff; font-size: 0.95rem;">📄 സേവനങ്ങൾ</h3>
+        <ul style="padding-left: 15px; margin-bottom: 0;">
+            <li>സർക്കാർ അപേക്ഷകൾ (Applications)</li>
+            <li>ഔദ്യോഗിക കത്തുകൾ (Official Letters)</li>
+            <li>ഉത്തരവുകൾ & സർക്കുലറുകൾ (Orders)</li>
+            <li>വിവരാവകാശ രേഖകൾ (RTI)</li>
+        </ul>
+    </div>
+    """, unsafe_allow_html=True)
 
-ശ്രദ്ധിക്കേണ്ട കർശന നിയമങ്ങൾ:
-1. ഘടന:
-   - പ്രേഷിതൻ (From) മുകളിലും, സ്വീകർത്താവ് (To) അതിനു താഴെയും കൃത്യമായി വരണം.
-   - സംബോധന: 'സർ,' അല്ലെങ്കിൽ 'മാന്യരേ,' എന്ന് ഉപയോഗിക്കുക.
-   - വിഷയം (Subject): കത്തിന്റെ ഉള്ളടക്കം ഒറ്റ വരിയിൽ കൃത്യമായി പറയുക.
-   - ഉള്ളടക്കം (Body): കാര്യം വളച്ചുകെട്ടില്ലാതെ, വ്യക്തമായി പാരഗ്രാഫുകളായി എഴുതുക. 'അപേക്ഷിക്കുന്നു', 'ശ്രദ്ധയിൽപ്പെടുത്തുന്നു', 'കനിവുണ്ടാകണമെന്ന് അഭ്യർത്ഥിക്കുന്നു' തുടങ്ങിയ മാന്യമായ ഔദ്യോഗിക പദങ്ങൾ ഉപയോഗിക്കുക.
-2. വിവരാവകാശ അപേക്ഷയാണെങ്കിൽ (RTI):
-   - തലക്കെട്ട്: "വിവരാവകാശ നിയമം 2005 പ്രകാരമുള്ള അപേക്ഷ" എന്ന് നൽകുക.
-   - സ്വീകർത്താവ്: 'സ്റ്റേറ്റ് പബ്ലിക് ഇൻഫർമേഷൻ ഓഫീസർ' (SPIO) എന്ന് ഉപയോഗിക്കുക.
-   - ഫീസ്: "നിയമപ്രകാരമുള്ള അപേക്ഷാ ഫീസായ 10 രൂപയുടെ കോർട്ട് ഫീ സ്റ്റാമ്പ് ഇതിനോടൊപ്പം പതിച്ചിട്ടുണ്ട്" എന്ന് ചേർക്കുക. ചോദ്യങ്ങൾ 1, 2, 3 എന്ന് നമ്പറിട്ട് നൽകുക.
-3. ഉപസംഹാരം: 'വിശ്വസ്തതയോടെ,' എന്ന് നൽകി ഒപ്പിടാനുള്ള സ്ഥലം നൽകുക. ഔട്ട്പുട്ടിൽ തയ്യാറാക്കിയ പൂർണ്ണമായ രേഖ മാത്രമേ ഉണ്ടാകാവൂ. Markdown ചിഹ്നങ്ങളോ അനാവശ്യ വിവരണങ്ങളോ പാടില്ല.
+# ── Master Prompt Builder ────────────────────────────────────────────────
+def build_master_prompt(group_sel, doc_type_key, preshitan, sweekarthavu, details, language):
+    doc_label = ALL_TYPES[doc_type_key]
+    
+    if language == "English":
+        lang_instruction = "professional and official English"
+        system_role = "You are an expert AI Assistant specialized in drafting official government documents, applications, and letters."
+    else:
+        lang_instruction = "ഔദ്യോഗിക ഭരണമലയാള ശൈലിയിൽ (Official Malayalam)"
+        system_role = "നീ കേരള സർക്കാരിന്റെ ഔദ്യോഗിക ഫയലുകൾ, അപേക്ഷകൾ, വിവരാവകാശ രേഖകൾ (RTI) എന്നിവ തയ്യാറാക്കുന്നതിൽ അഗാധമായ അറിവുള്ള ഒരു 'Senior Section Officer' ആണ്."
 
-ഉപയോക്താവ് നൽകിയ വിവരങ്ങൾ:
---------------------------
-പ്രേഷിതൻ (Preshitan): {preshitan}
-സ്വീകർത്താവ് (Sweekarthavu): {sweekarthavu}
-വിഷയവും മറ്റ് വിവരങ്ങളും: {details}
---------------------------
+    return f"""{system_role}
+നൽകിയിട്ടുള്ള വിവരങ്ങൾ ഉപയോഗിച്ച് ഏറ്റവും മികച്ച രീതിയിൽ പൂർണ്ണമായ ഒരു '{doc_label}' ({group_sel}) തയ്യാറാക്കുക.
+
+കർശനമായ നിയമങ്ങൾ:
+1. ഭാഷ: പൂർണ്ണമായും {lang_instruction} ആയിരിക്കണം.
+2. ഘടന (Structure):
+   - പ്രേഷിതൻ (From/Sender details) മുകളിലും, സ്വീകർത്താവ് (To/Recipient details) അതിനു താഴെയും കൃത്യമായി വരണം.
+   - സംബോധന (Salutation): 'സർ,' അല്ലെങ്കിൽ 'മാന്യരേ,' എന്ന് നൽകുക.
+   - വിഷയം (Subject): കത്തിന്റെ ഉള്ളടക്കം ഒറ്റ വരിയിൽ വ്യക്തമായി എഴുതുക.
+   - ഉള്ളടക്കം (Body): കാര്യം വളച്ചുകെട്ടില്ലാതെ ഔദ്യോഗിക പദങ്ങൾ ഉപയോഗിച്ച് പാരഗ്രാഫുകളായി തയ്യാറാക്കുക.
+   - RTI ആണെങ്കിൽ: 2005-ലെ വിവരാവകാശ നിയമപ്രകാരമുള്ള ഫോർമാറ്റും 10 രൂപയുടെ കോർട്ട് ഫീ സ്റ്റാമ്പ് പതിച്ച വിവരവും ചോദ്യങ്ങൾ നമ്പറിട്ടും നൽകുക.
+3. ഉപസംഹാരം: 'വിശ്വസ്തതയോടെ' എന്ന് നൽകി ഒപ്പിടാനുള്ള സ്ഥലം നൽകുക.
+4. ഔട്ട്പുട്ടിൽ തയ്യാറാക്കിയ പൂർണ്ണമായ രേഖ മാത്രമേ ഉണ്ടാകാവൂ. യാതൊരുവിധ Markdown ചിഹ്നങ്ങളോ (** ##) അനാവശ്യ വിവരണങ്ങളോ പാടില്ല.
+
+വിവരങ്ങൾ:
+- പ്രേഷിതൻ (Preshitan): {preshitan}
+- സ്വീകർത്താവ് (Sweekarthavu): {sweekarthavu}
+- വിഷയം & വിവരങ്ങൾ (Details): {details}
 """
 
 def call_gemini(api_key, model_name, prompt):
@@ -163,13 +242,11 @@ def call_gemini(api_key, model_name, prompt):
     response = client.models.generate_content(
         model=model_name,
         contents=prompt,
-        config=types.GenerateContentConfig(
-            temperature=0.3
-        )
+        config=types.GenerateContentConfig(temperature=0.3)
     )
     return response.text.strip()
 
-def make_docx(text):
+def make_docx(text, label):
     doc = Document()
     for sec in doc.sections:
         sec.top_margin = Cm(2.5); sec.bottom_margin = Cm(2.5)
@@ -177,7 +254,7 @@ def make_docx(text):
     
     tp = doc.add_paragraph()
     tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    tr = tp.add_run("[ ഔദ്യോഗിക രേഖ ]")
+    tr = tp.add_run(f"[ {label} ]")
     tr.font.size = Pt(8); tr.font.bold = True
     tr.font.color.rgb = RGBColor(0x1A, 0x4D, 0x2E)
     tr.font.name = "Noto Serif Malayalam"
@@ -201,109 +278,116 @@ def make_docx(text):
     buf = io.BytesIO(); doc.save(buf); buf.seek(0)
     return buf.getvalue()
 
-
-# ── Header ───────────────────────────────────────────────────────────────
+# ── Main UI Header ───────────────────────────────────────────────────────
 st.markdown("""
 <div class="app-header">
-  <div class="app-header-icon">🤖</div>
+  <div class="app-header-icon">📋</div>
   <div>
-    <h1>Smart Document Creator</h1>
-    <p>പ്രേഷിതൻ & സ്വീകർത്താവ് &nbsp;·&nbsp; അപേക്ഷ, RTI, ഔദ്യോഗിക കത്ത്</p>
+    <h1>Smart Document Writing Tool</h1>
+    <p>അപേക്ഷ, RTI, ഔദ്യോഗിക കത്തുകൾ &nbsp;·&nbsp; AI Powered</p>
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-if secret_key:
-    st.markdown("""
-    <div class="secret-badge">
-      🔒 <span>API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
-    </div>""", unsafe_allow_html=True)
-else:
-    st.error("⚠️ Streamlit secrets.toml-ൽ API Key നൽകിയിട്ടില്ല.")
-
-# ── Form ────────────────────────────────────────────────_________________
+# ── Form Input Section ───────────────────────────────────────────────────
 st.markdown('<div class="form-card">', unsafe_allow_html=True)
-st.markdown('<div class="form-section-title">📝 വിവരങ്ങൾ നൽകുക</div>', unsafe_allow_html=True)
+st.markdown('<div class="form-section-title">📋 രേഖയുടെ തരം തിരഞ്ഞെടുക്കുക</div>', unsafe_allow_html=True)
 
-col1, col2 = st.columns(2)
-with col1:
-    preshitan = st.text_area("പ്രേഷിതൻ (Preshitan)", placeholder="പേര്\nവിലാസം\nഫോൺ നമ്പർ", height=100)
-with col2:
-    sweekarthavu = st.text_area("സ്വീകർത്താവ് (Sweekarthavu)", placeholder="പദവി\nഓഫീസിന്റെ പേര്\nസ്ഥലം", height=100)
+col_g, col_t, col_l = st.columns([1.2, 1.2, 0.9])
+with col_g:
+    group_sel = st.selectbox("വിഭാഗം (Category)", list(DOC_GROUPS.keys()))
+with col_t:
+    type_map = DOC_GROUPS[group_sel]
+    doc_type = st.selectbox("രേഖയുടെ തരം (Type)", list(type_map.keys()), format_func=lambda x: type_map[x])
+with col_l:
+    doc_language = st.selectbox("ഭാഷ (Language)", ["Malayalam", "English"])
 
-ph_text = """ഉദാഹരണങ്ങൾ:
-1. (RTI) പഞ്ചായത്തിൽ കഴിഞ്ഞ വർഷം റോഡ് പണിക്കായി അനുവദിച്ച ഫണ്ട് എത്രയെന്ന് അറിയാൻ...
-2. (അപേക്ഷ) വീടിന്റെ പണി കഴിഞ്ഞു, പുതിയ കുടിവെള്ള കണക്ഷൻ ലഭിക്കാൻ...
-3. (കത്ത്) ഓഫീസിൽ ഫയൽ നീക്കം എളുപ്പമാക്കാൻ പുതിയ 2 കമ്പ്യൂട്ടറുകൾ അനുവദിക്കുന്നത് സംബന്ധിച്ച്..."""
+st.markdown('<div class="form-section-title" style="margin-top: 20px;">📝 വിലാസവും വിവരങ്ങളും നൽകുക</div>', unsafe_allow_html=True)
+
+c1, c2 = st.columns(2)
+with c1:
+    preshitan = st.text_area("പ്രേഷിതൻ (Preshitan)", placeholder="പേര്\nവിലാസം\nഫോൺ നമ്പർ", height=110)
+with c2:
+    sweekarthavu = st.text_area("സ്വീകർത്താവ് (Sweekarthavu)", placeholder="പദവി\nഓഫീസിന്റെ പേര്\nസ്ഥലം", height=110)
 
 details = st.text_area(
     "വിഷയവും മറ്റ് വിവരങ്ങളും (Subject & Details)",
-    placeholder=ph_text,
-    height=160
+    placeholder="ഉദാ: കുടിവെള്ള കണക്ഷൻ ലഭിക്കുന്നത് സംബന്ധിച്ച്... അല്ലെങ്കിൽ RTI ചോദ്യങ്ങൾ ഇവിടെ നൽകുക...",
+    height=150
 )
 
-# AI Model Selection
-model_name = st.selectbox(
-    "AI Model",
-    ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-1.5-flash"],
-    index=0
+# Custom Model Entry (Gemini 2.5 and above compliant)
+model_name = st.text_input(
+    "AI Model Name (ഫ്യൂച്ചർ അപ്ഡേറ്റുകൾക്കായി ടൈപ്പ് ചെയ്യാം)",
+    value="gemini-2.5-flash",
+    help="ഉദാഹരണത്തിന് gemini-2.5-flash അല്ലെങ്കിൽ gemini-2.5-pro എന്ന് നൽകാം."
 )
 
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Generate Button ───────────────────────────────────────────────────────
-gen_btn = st.button("⚡ മികച്ച ഔദ്യോഗിക രേഖ തയ്യാറാക്കുക", type="primary", use_container_width=True)
-
-if gen_btn:
-    if not secret_key:
-        st.error("⚠️ API Key ലഭ്യമല്ല.")
+if st.button("⚡ മികച്ച ഔദ്യോഗിക രേഖ തയ്യാറാക്കുക", type="primary"):
+    if not active_api_key:
+        st.error("⚠️ ദയവായി ഇടത് വശത്തെ സൈഡ്‌ബാറിൽ Google Gemini API Key നൽകുക.")
     elif not details.strip():
         st.error("⚠️ ദയവായി വിഷയവും വിവരങ്ങളും നൽകുക.")
     else:
-        with st.spinner("AI രേഖ തയ്യാറാക്കുന്നു..."):
+        with st.spinner("AI ഭരണഭാഷയിൽ രേഖ തയ്യാറാക്കുന്നു... ശരീരവും ഘടനയും പരിശോധിക്കുന്നു..."):
             try:
-                prompt = build_smart_prompt(preshitan, sweekarthavu, details)
-                result = call_gemini(secret_key, model_name, prompt)
+                prompt = build_master_prompt(group_sel, doc_type, preshitan, sweekarthavu, details, doc_language)
+                result = call_gemini(active_api_key, model_name, prompt)
                 
+                final_label = type_map[doc_type] if doc_language == "Malayalam" else "Official Document"
+
                 st.session_state.output = result
                 st.session_state.edit_mode = False
-                st.session_state.docx_cache = make_docx(result)
+                st.session_state.doc_label = final_label
+                st.session_state.docx_cache = make_docx(result, final_label)
                 st.rerun()
             except Exception as e:
-                st.error(f"❌ Error: {e}")
+                error_msg = str(e)
+                if "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+                    st.error("⚠️ API Quota Limit കഴിഞ്ഞിരിക്കുന്നു. ദയവായി കുറച്ചുസമയം കഴിഞ്ഞ് വീണ്ടും ശ്രമിക്കുക.")
+                else:
+                    st.error(f"❌ Error: {error_msg}")
 
-# ── Output ────────────────────────────────────────────────────────────────
+# ── Output Section ────────────────────────────────────────────────رفت
 if st.session_state.output:
-    if st.session_state.edit_mode:
-        _docx_bytes = make_docx(st.session_state.output)
-    else:
-        _docx_bytes = st.session_state.docx_cache or make_docx(st.session_state.output)
+    doc_label = st.session_state.doc_label or "Official Document"
 
-    c1, c2, c3, c4 = st.columns(4)
-    if c1.button("✏️ Edit" if not st.session_state.edit_mode else "👁️ Preview", use_container_width=True):
+    if st.session_state.edit_mode:
+        _docx_bytes = make_docx(st.session_state.output, doc_label)
+    else:
+        _docx_bytes = st.session_state.docx_cache or make_docx(st.session_state.output, doc_label)
+
+    st.markdown('<div class="form-card">', unsafe_allow_html=True)
+    st.markdown('<div class="form-section-title">📄 തയ്യാറാക്കിയ രേഖ (Output Preview)</div>', unsafe_allow_html=True)
+
+    col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
+    if col_btn1.button("✏️ Edit" if not st.session_state.edit_mode else "👁️ Preview", use_container_width=True):
         st.session_state.edit_mode = not st.session_state.edit_mode
         st.rerun()
 
-    c2.download_button(
+    col_btn2.download_button(
         "⬇️ .docx",
         data=_docx_bytes,
-        file_name=f"official-document-{datetime.date.today()}.docx",
+        file_name=f"document-{datetime.date.today()}.docx",
         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         use_container_width=True
     )
-    if c3.button("🖨️ Print", use_container_width=True):
+    if col_btn3.button("🖨️ Print", use_container_width=True):
         st.session_state['do_print'] = True
-    if c4.button("🗑️ Clear", use_container_width=True):
+    if col_btn4.button("🗑️ Clear", use_container_width=True):
         st.session_state.output = ''
         st.session_state.edit_mode = False
         st.rerun()
 
     if st.session_state.edit_mode:
-        st.caption("✏️ നേരിട്ട് edit ചെയ്യാം")
+        st.caption("✏️ താഴെ നേരിട്ട് തിരുത്തലുകൾ (Edit) വരുത്താം:")
         edited = st.text_area(
             "edit",
             value=st.session_state.output,
-            height=500,
+            height=450,
             label_visibility="collapsed"
         )
         st.session_state.output = edited
@@ -313,40 +397,34 @@ if st.session_state.output:
             print_js = "<script>window.print();</script>"
             st.session_state['do_print'] = False
 
-        safe = (st.session_state.output
-                .replace("&","&amp;").replace("<","&lt;").replace(">","&gt;"))
+        safe_text = (st.session_state.output
+                     .replace("&","&amp;").replace("<","&lt;").replace(">","&gt;"))
 
         st.components.v1.html(f"""
 <!DOCTYPE html><html><head><meta charset="UTF-8">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{{box-sizing:border-box;margin:0;padding:0}}
-body{{background:#f0ebe0;padding:12px;font-size:14px}}
+body{{background:#f0ebe0;padding:8px;font-size:14px}}
 .sheet{{
-  background:white;border-radius:8px;
-  padding:48px 52px;
+  background:white;border-radius:6px;
+  padding:40px 48px;
   font-family:'Noto Serif Malayalam',serif;
-  font-size:14px;line-height:2.1;color:#111;
+  font-size:14px;line-height:2.2;color:#111;
   white-space:pre-wrap;
-  box-shadow:0 4px 20px rgba(0,0,0,.1);
+  box-shadow:0 4px 15px rgba(0,0,0,.08);
   position:relative;
-}}
-.sheet::before{{
-  content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:linear-gradient(90deg,#1A4D2E,#2A7347);
-  border-radius:8px 8px 0 0;
+  border-top: 4px solid #1A4D2E;
 }}
 @media print{{
   body{{background:white;padding:0}}
-  .sheet{{box-shadow:none;border:none;border-radius:0}}
-  .sheet::before{{display:none}}
+  .sheet{{box-shadow:none;border:none;padding:0}}
 }}
 </style></head>
-<body><div class="sheet">{safe}</div>{print_js}</body></html>
-""", height=650, scrolling=True)
+<body><div class="sheet">{safe_text}</div>{print_js}</body></html>
+""", height=550, scrolling=True)
 
-        wc = len(st.session_state.output.split())
-        st.caption(f"📊 {wc} words · {len(st.session_state.output)} characters")
-
-st.markdown("---")
-st.caption("🔒 Advanced AI Auto-Detect Mode · Kerala Govt Formats Trained")
+        word_count = len(st.session_state.output.split())
+        st.caption(f"📊 {word_count} words · {len(st.session_state.output)} characters")
+    
+    st.markdown('</div>', unsafe_allow_html=True)
