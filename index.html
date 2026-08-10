@@ -1,964 +1,614 @@
 <!DOCTYPE html>
 <html lang="ml">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ഔദ്യോഗിക കത്ത് നിർമ്മാതാവ്</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;500;600;700&family=Noto+Sans+Malayalam:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#FBF8F1;
-    --paper-dark:#F1ECDF;
-    --ink:#1E2A3A;
-    --ink-soft:#4A5568;
-    --seal:#8C2F39;
-    --seal-dark:#6E2229;
-    --gold:#A9812F;
-    --line:#D9D0BC;
-    --ok:#2F6B4F;
-    --err:#A63B3B;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(1200px 600px at 10% -10%, #fff8ea 0%, transparent 60%),
-      var(--paper-dark);
-    font-family:'Noto Sans Malayalam','Inter',sans-serif;
-    color:var(--ink);
-    min-height:100vh;
-    padding:32px 16px 80px;
-  }
-  .wrap{max-width:920px;margin:0 auto;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Document Creator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1A4D2E;
+            --primary-light: #2A7347;
+            --bg-color: #f0ebe0;
+            --card-bg: #ffffff;
+            --text-dark: #333;
+            --border-color: #ddd;
+        }
 
-  header.top{
-    text-align:center;
-    margin-bottom:28px;
-  }
-  .kerala-mark{
-    width:46px;height:46px;margin:0 auto 10px;
-    border:2px solid var(--gold);
-    border-radius:50%;
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Noto Serif Malayalam',serif;
-    color:var(--gold);
-    font-size:20px;font-weight:700;
-    background:var(--paper);
-  }
-  h1{
-    font-family:'Noto Serif Malayalam',serif;
-    font-size:1.65rem;
-    margin:0 0 4px;
-    letter-spacing:.2px;
-  }
-  .subtitle{
-    color:var(--ink-soft);
-    font-size:.92rem;
-  }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-  .card{
-    background:var(--paper);
-    border:1px solid var(--line);
-    border-radius:4px;
-    padding:24px;
-    margin-bottom:20px;
-    box-shadow:0 1px 3px rgba(30,20,10,.06);
-    position:relative;
-  }
-  .card::before{
-    content:"";
-    position:absolute;top:0;left:0;right:0;height:3px;
-    background:linear-gradient(90deg,var(--seal),var(--gold));
-    border-radius:4px 4px 0 0;
-  }
-  .card h2{
-    font-family:'Noto Serif Malayalam',serif;
-    font-size:1.05rem;
-    margin:0 0 16px;
-    color:var(--seal-dark);
-    display:flex;align-items:center;gap:8px;
-  }
-  .card h2 .num{
-    font-family:'Inter',sans-serif;
-    font-size:.7rem;
-    color:var(--gold);
-    border:1px solid var(--gold);
-    border-radius:50%;
-    width:20px;height:20px;
-    display:flex;align-items:center;justify-content:center;
-    flex-shrink:0;
-  }
+        body {
+            font-family: 'Noto Sans Malayalam', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-  @media(max-width:640px){.row{grid-template-columns:1fr;}}
+        /* ── Sidebar Styles ── */
+        .sidebar {
+            width: 320px;
+            background: #11301c;
+            color: white;
+            padding: 20px;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            z-index: 1000;
+            overflow-y: auto;
+        }
 
-  label{
-    display:block;
-    font-size:.82rem;
-    color:var(--ink-soft);
-    margin-bottom:5px;
-    font-weight:500;
-  }
-  .field{margin-bottom:14px;}
-  input[type=text], input[type=date], input[type=password], select, textarea{
-    width:100%;
-    padding:10px 12px;
-    border:1px solid var(--line);
-    border-radius:3px;
-    background:#fff;
-    font-family:inherit;
-    font-size:.95rem;
-    color:var(--ink);
-  }
-  input:focus, select:focus, textarea:focus{
-    outline:none;
-    border-color:var(--seal);
-    box-shadow:0 0 0 3px rgba(140,47,57,.1);
-  }
-  textarea{resize:vertical;min-height:80px;line-height:1.5;}
-  .hint{font-size:.76rem;color:var(--ink-soft);margin-top:4px;}
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
 
-  .key-row{display:flex;gap:8px;align-items:flex-end;}
-  .key-row .field{flex:1;margin-bottom:0;}
+        .sidebar h2 {
+            font-family: 'Noto Serif Malayalam', serif;
+            font-size: 1.2rem;
+            color: #a5d6a7;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
 
-  button{
-    font-family:'Noto Sans Malayalam','Inter',sans-serif;
-    cursor:pointer;
-    border:none;
-    border-radius:3px;
-    font-weight:600;
-    font-size:.9rem;
-  }
-  .btn-primary{
-    background:var(--seal);
-    color:#fff;
-    padding:13px 22px;
-    width:100%;
-    transition:background .15s;
-  }
-  .btn-primary:hover{background:var(--seal-dark);}
-  .btn-primary:disabled{background:#b9a9a9;cursor:not-allowed;}
-  .btn-ghost{
-    background:transparent;
-    border:1px solid var(--line);
-    color:var(--ink-soft);
-    padding:9px 14px;
-  }
-  .btn-ghost:hover{border-color:var(--seal);color:var(--seal);}
+        .api-key-box {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
 
-  .status{
-    font-size:.85rem;
-    margin-top:10px;
-    padding:9px 12px;
-    border-radius:3px;
-    display:none;
-  }
-  .status.show{display:block;}
-  .status.err{background:#FBEAEA;color:var(--err);border:1px solid #EFC9C9;}
-  .status.ok{background:#EAF3EE;color:var(--ok);border:1px solid #C9E4D3;}
+        .api-key-box input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: none;
+            outline: none;
+        }
 
-  /* Output letter sheet */
-  .sheet-wrap{position:relative;}
-  .stamp{
-    position:absolute;
-    top:18px;right:18px;
-    width:78px;height:78px;
-    border:2.5px solid var(--seal);
-    border-radius:50%;
-    color:var(--seal);
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Noto Serif Malayalam',serif;
-    font-size:.7rem;font-weight:700;
-    text-align:center;line-height:1.2;
-    transform:rotate(-14deg) scale(0);
-    opacity:0;
-    transition:transform .5s cubic-bezier(.34,1.56,.64,1), opacity .3s;
-    pointer-events:none;
-    background:rgba(255,255,255,.6);
-  }
-  .stamp.show{transform:rotate(-14deg) scale(1);opacity:.85;}
+        .api-key-box button {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            background: var(--primary-light);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+        }
 
-  .sheet{
-    background:#fff;
-    border:1px solid var(--line);
-    border-radius:2px;
-    padding:40px 36px;
-    min-height:200px;
-    font-family:'Noto Serif Malayalam',serif;
-    font-size:1.02rem;
-    line-height:1.9;
-    color:#1a1a1a;
-    white-space:pre-wrap;
-    box-shadow:0 2px 10px rgba(0,0,0,.05);
-  }
-  .sheet.empty{
-    color:var(--ink-soft);
-    font-family:'Noto Sans Malayalam',sans-serif;
-    font-size:.9rem;
-    display:flex;align-items:center;justify-content:center;
-    text-align:center;
-    min-height:160px;
-  }
-  .sheet.loading{
-    display:flex;align-items:center;justify-content:center;
-    color:var(--ink-soft);
-    font-family:'Noto Sans Malayalam',sans-serif;
-  }
-  .spinner{
-    width:18px;height:18px;border-radius:50%;
-    border:2px solid var(--line);border-top-color:var(--seal);
-    animation:spin 1s linear infinite;
-    margin-right:10px;
-  }
-  @keyframes spin{to{transform:rotate(360deg);}}
+        .info-box {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #d1e8d5;
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
 
-  .output-actions{
-    display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;
-  }
+        .info-box ul {
+            padding-left: 20px;
+            margin-top: 10px;
+        }
 
-  .how-to{
-    background:var(--paper-dark);
-    border:1px solid var(--line);
-    border-radius:3px;
-    padding:12px 14px;
-    font-size:.85rem;
-    line-height:1.6;
-    color:var(--ink-soft);
-  }
-  .how-to strong{color:var(--ink);}
-  .how-to a{color:var(--seal);}
+        .info-box li {
+            margin-bottom: 6px;
+        }
 
-  footer{
-    text-align:center;
-    color:var(--ink-soft);
-    font-size:.78rem;
-    margin-top:30px;
-  }
-</style>
+        .info-box a {
+            color: #81c784;
+            text-decoration: none;
+        }
+
+        /* ── Main Content Styles ── */
+        .main-content {
+            flex-grow: 1;
+            margin-left: 320px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+            width: 100%;
+        }
+
+        .main-content.expanded {
+            margin-left: 0;
+        }
+
+        .toggle-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: left 0.3s ease;
+        }
+        
+        /* Adjust toggle button when sidebar is open */
+        .sidebar:not(.collapsed) ~ .toggle-btn {
+            left: 340px;
+        }
+
+        .header-banner {
+            background: linear-gradient(135deg, var(--primary) 0%, #0F2C1A 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            margin-top: 40px;
+            box-shadow: 0 4px 15px rgba(26,77,46,.25);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header-banner h1 {
+            font-family: 'Noto Serif Malayalam', serif;
+            margin-bottom: 5px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            padding: 25px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            border-top: 4px solid var(--primary);
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary);
+            font-size: 0.9rem;
+        }
+
+        select, textarea, input {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Noto Sans Malayalam', sans-serif;
+            font-size: 0.95rem;
+            outline: none;
+            resize: vertical;
+        }
+
+        select:focus, textarea:focus, input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(26,77,46,0.1);
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(26,77,46,0.3);
+            font-family: 'Noto Sans Malayalam', sans-serif;
+        }
+
+        .btn-generate:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* ── Output Styles ── */
+        #output-section {
+            display: none;
+        }
+
+        .output-paper {
+            background: white;
+            padding: 50px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            min-height: 500px;
+            font-family: 'Noto Serif Malayalam', serif;
+            font-size: 1rem;
+            line-height: 2.2;
+            white-space: pre-wrap;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border: 1px solid var(--primary);
+            background: white;
+            color: var(--primary);
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action:hover {
+            background: #f0f7f2;
+        }
+
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Print styles */
+        @media print {
+            body { background: white; }
+            .sidebar, .toggle-btn, .header-banner, .card:not(#output-section), .action-bar { display: none !important; }
+            .main-content { margin-left: 0; padding: 0; }
+            .output-paper { border: none; box-shadow: none; padding: 0; }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar:not(.collapsed) { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+            .sidebar:not(.collapsed) ~ .toggle-btn { left: 340px; }
+        }
+    </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header class="top">
-    <div class="kerala-mark">കേ</div>
-    <h1>ഔദ്യോഗിക കത്ത് നിർമ്മാതാവ്</h1>
-    <div class="subtitle">വിവരങ്ങൾ നൽകുക — ഭരണമലയാളത്തിൽ കത്ത് / നോട്ട് / ഉത്തരവ് / സർക്കുലർ തയ്യാറാക്കാം</div>
-  </header>
+    <!-- Toggle Button -->
+    <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
 
-  <div class="card" id="apiKeyCard">
-    <h2><span class="num">1</span> Gemini API കീ</h2>
-    <div class="how-to">
-      <strong>എങ്ങനെ ഉപയോഗിക്കാം:</strong>
-      <ol style="margin:6px 0 0;padding-left:18px;">
-        <li>താഴെ നിങ്ങളുടെ Gemini API കീ നൽകി "സേവ് ചെയ്യുക" അമർത്തുക.</li>
-        <li>കീ ഒരിക്കൽ സേവ് ചെയ്താൽ ഈ ബ്രൗസറിൽ സൂക്ഷിക്കും — വീണ്ടും ചോദിക്കില്ല, അടുത്ത തവണ നേരിട്ട് കത്ത് തയ്യാറാക്കൽ പേജിലേക്ക് പോകും.</li>
-        <li>അതിനുശേഷം മാത്രം താഴെയുള്ള ഭാഗങ്ങൾ (രേഖയുടെ തരം, വിവരങ്ങൾ മുതലായവ) ദൃശ്യമാകും.</li>
-      </ol>
-      <strong style="display:block;margin-top:8px;">API കീ എങ്ങനെ കിട്ടും:</strong> <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a>-യിൽ Google അക്കൗണ്ട് ഉപയോഗിച്ച് ലോഗിൻ ചെയ്ത് "Create API key" അമർത്തിയാൽ സൗജന്യമായി കീ ലഭിക്കും.
+    <!-- Sidebar -->
+    <div class="sidebar collapsed" id="sidebar">
+        <h2>🔑 API Key Setup</h2>
+        <div class="api-key-box">
+            <label style="color:white;">Google Gemini API Key</label>
+            <input type="password" id="api-key" placeholder="AIzaSy...">
+            <button onclick="saveApiKey()">Save Key</button>
+            <p id="key-status" style="margin-top:10px; font-size:0.8rem; color:#a5d6a7; display:none;">✅ Key Saved in Browser!</p>
+        </div>
+
+        <div class="info-box">
+            <h3 style="margin-bottom: 10px; color: #fff;">❓ API Key എങ്ങനെ ലഭിക്കും?</h3>
+            <ol style="padding-left: 15px;">
+                <li><a href="https://aistudio.google.com/app/apikey" target="_blank">Google AI Studio</a> സന്ദർശിക്കുക.</li>
+                <li>നിങ്ങളുടെ Google Account വഴി ലോഗിൻ ചെയ്യുക.</li>
+                <li>"Create API Key" എന്ന ബട്ടൺ ക്ലിക്ക് ചെയ്യുക.</li>
+                <li>ലഭിക്കുന്ന Key കോപ്പി ചെയ്ത് മുകളിലെ ബോക്സിൽ നൽകുക. (ഇത് തികച്ചും സൗജന്യമാണ്).</li>
+            </ol>
+        </div>
+
+        <div class="info-box">
+            <h3 style="margin-bottom: 10px; color: #fff;">📄 ഈ സൈറ്റിലെ സേവനങ്ങൾ</h3>
+            <p>ഈ വെബ്സൈറ്റ് വഴി നിങ്ങൾക്ക് താഴെ പറയുന്ന ഔദ്യോഗിക രേഖകൾ നിമിഷനേരം കൊണ്ട് തയ്യാറാക്കാം:</p>
+            <ul>
+                <li>സർക്കാർ ഓഫീസുകളിലേക്കുള്ള അപേക്ഷകൾ (വരുമാന, ജാതി, താമസ സർട്ടിഫിക്കറ്റുകൾ).</li>
+                <li>വിവരാവകാശ രേഖകൾ (RTI).</li>
+                <li>ഔദ്യോഗിക കത്തുകൾ (Official & D.O. Letters).</li>
+                <li>പരാതികൾ (Complaints), അവധി അപേക്ഷകൾ.</li>
+            </ul>
+        </div>
     </div>
-    <div class="key-row" style="margin-top:14px;">
-      <div class="field">
-        <label for="apiKey">API കീ (ഉപകരണത്തിൽ മാത്രം സൂക്ഷിക്കുന്നു)</label>
-        <input type="password" id="apiKey" placeholder="AIza...">
-      </div>
-      <button class="btn-ghost" id="saveKeyBtn" type="button">സേവ് ചെയ്യുക</button>
+
+    <!-- Main Content -->
+    <div class="main-content expanded" id="main-content">
+        <div class="header-banner">
+            <div class="app-header-icon">📋</div>
+            <div>
+                <h1>Smart Document Creator</h1>
+                <p>ഭരണഭാഷ &nbsp;·&nbsp; AI Powered Web App</p>
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        <div class="card" id="form-section">
+            <div class="form-section-title">📝 രേഖയുടെ വിവരങ്ങൾ നൽകുക</div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>രേഖയുടെ വിഭാഗം</label>
+                    <select id="doc-category" onchange="updateDocTypes()">
+                        <option value="applications">📝 അപേക്ഷകൾ (Applications)</option>
+                        <option value="letters">📨 കത്തുകൾ (Letters)</option>
+                        <option value="orders">📜 ഉത്തരവ് / അറിയിപ്പ് (Orders/Notices)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>രേഖയുടെ തരം</label>
+                    <select id="doc-type" onchange="updatePlaceholder()"></select>
+                </div>
+                <div class="form-group">
+                    <label>ഭാഷ (Language)</label>
+                    <select id="doc-lang">
+                        <option value="Malayalam">മലയാളം (Malayalam)</option>
+                        <option value="English">English</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>അയക്കുന്ന ആൾ (From Address)</label>
+                    <textarea id="from-addr" rows="3" placeholder="പേര്&#10;വിലാസം&#10;ഫോൺ നമ്പർ"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>സ്വീകർത്താവ് (To Address)</label>
+                    <textarea id="to-addr" rows="3" placeholder="പദവി&#10;ഓഫീസിന്റെ പേര്&#10;സ്ഥലം"></textarea>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>വിഷയവും മറ്റ് വിവരങ്ങളും (Subject & Details)</label>
+                <textarea id="details" rows="5" placeholder="വിവരങ്ങൾ ഇവിടെ ടൈപ്പ് ചെയ്യുക..."></textarea>
+            </div>
+
+            <button class="btn-generate" onclick="generateDocument()">⚡ രേഖ തയ്യാറാക്കുക</button>
+            <div class="loader" id="loader">🔄 AI രേഖ തയ്യാറാക്കുന്നു. ദയവായി കാത്തിരിക്കുക...</div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="card" id="output-section">
+            <div class="form-section-title">📄 തയ്യാറാക്കിയ രേഖ</div>
+            <div class="action-bar">
+                <button class="btn-action" onclick="copyText()">📋 Copy</button>
+                <button class="btn-action" onclick="window.print()">🖨️ Print</button>
+                <button class="btn-action" onclick="downloadWord()">⬇️ Download Word</button>
+                <button class="btn-action" onclick="resetApp()" style="color: #d32f2f; border-color: #d32f2f;">🆕 പുതിയത്</button>
+            </div>
+            
+            <p style="font-size:0.85rem; color:#666; margin-bottom:10px;">(താഴെ കാണുന്ന രേഖയിൽ ക്ലിക്ക് ചെയ്ത് നിങ്ങൾക്ക് നേരിട്ട് തിരുത്തലുകൾ (Edit) വരുത്താവുന്നതാണ്)</p>
+            
+            <div id="output-paper" class="output-paper" contenteditable="true"></div>
+        </div>
     </div>
-    <div class="field" style="margin-top:12px;">
-      <label for="modelName">മോഡൽ</label>
-      <input type="text" id="modelName" value="gemini-3.5-flash">
-      <div class="hint">Error വന്നാൽ ഈ പേര് പുതിയ മോഡൽ പേരാക്കി മാറ്റി നോക്കുക (ഉദാ: gemini-2.5-flash).</div>
-    </div>
-    <div class="status" id="keyStatus"></div>
-  </div>
 
-  <div id="restOfForm" style="display:none;">
-  <div class="hint" style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-    <span>API കീ ശരിയായി സേവ് ചെയ്തിട്ടുണ്ട്. <a href="#" id="changeKeyLink">കീ മാറ്റണോ?</a></span>
-    <button class="btn-ghost" id="newLetterBtn" type="button" style="padding:6px 12px;font-size:.8rem;">+ പുതിയ കത്ത് തുടങ്ങുക</button>
-  </div>
-  <div class="card">
-    <h2><span class="num">2</span> രേഖയുടെ തരം</h2>
-    <div class="field">
-      <select id="docType">
-        <optgroup label="കത്തുകൾ">
-          <option value="letter">ഔദ്യോഗിക കത്ത് (Official Letter)</option>
-          <option value="do_letter">അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter)</option>
-          <option value="forwarding">അയക്കൽ കത്ത് (Forwarding Letter)</option>
-          <option value="reminder">ഓർമ്മപ്പെടുത്തൽ കത്ത് (Reminder Letter)</option>
-          <option value="invitation">ക്ഷണക്കത്ത് (Invitation Letter)</option>
-        </optgroup>
-        <optgroup label="ഉത്തരവുകൾ">
-          <option value="order">ഉത്തരവ് / നടപടിക്രമം (Order/Proceedings)</option>
-          <option value="sanction">അനുമതി ഉത്തരവ് (Sanction Order)</option>
-          <option value="transfer">സ്ഥലംമാറ്റ ഉത്തരവ് (Transfer Order)</option>
-        </optgroup>
-        <optgroup label="അറിയിപ്പുകൾ">
-          <option value="circular">സർക്കുലർ (Circular)</option>
-          <option value="public_notice">പൊതു അറിയിപ്പ് (Public Notice)</option>
-          <option value="tender_notice">ടെണ്ടർ അറിയിപ്പ് (Tender Notice)</option>
-          <option value="show_cause">കാരണം കാണിക്കൽ നോട്ടീസ് (Show Cause Notice)</option>
-        </optgroup>
-        <optgroup label="മറ്റുള്ളവ">
-          <option value="note">നോട്ട് (File Note)</option>
-          <option value="memo">മെമ്മോറാണ്ടം (Memorandum)</option>
-          <option value="certificate">സർട്ടിഫിക്കറ്റ് (Certificate)</option>
-          <option value="rti_reply">വിവരാവകാശ മറുപടി (RTI Reply)</option>
-        </optgroup>
-        <optgroup label="അപേക്ഷകൾ (Public → Office)">
-          <option value="app_general">പൊതു അപേക്ഷ (General Application)</option>
-          <option value="app_income">വരുമാന സർട്ടിഫിക്കറ്റ് അപേക്ഷ</option>
-          <option value="app_nativity">ജനന/നാട്ടുകാർ സർട്ടിഫിക്കറ്റ് അപേക്ഷ</option>
-          <option value="app_residence">താമസ സർട്ടിഫിക്കറ്റ് അപേക്ഷ</option>
-          <option value="app_caste">ജാതി/കമ്മ്യൂണിറ്റി സർട്ടിഫിക്കറ്റ് അപേക്ഷ</option>
-          <option value="app_noc">NOC അപേക്ഷ (No Objection Certificate)</option>
-          <option value="app_building">കെട്ടിട നിർമ്മാണ/ഉപയോഗ അനുമതി അപേക്ഷ</option>
-          <option value="app_trade">വ്യാപാര ലൈസൻസ് അപേക്ഷ</option>
-          <option value="app_pension">പെൻഷൻ/ആനുകൂല്യ അപേക്ഷ</option>
-          <option value="app_land">ഭൂമി/ഭൂഉടമ അനുബന്ധ അപേക്ഷ</option>
-          <option value="app_complaint">പരാതി / Grievance Application</option>
-          <option value="app_leave">അവധി അപേക്ഷ (Leave Application)</option>
-          <option value="app_scholarship">സ്കോളർഷിപ്പ്/ആനുകൂല്യ അപേക്ഷ</option>
-          <option value="app_water">കുടിവെള്ള/ഡ്രെയിനേജ് കണക്ഷൻ അപേക്ഷ</option>
-          <option value="app_road">റോഡ്/ഇൻഫ്രാ ആവശ്യ അപേക്ഷ</option>
-        </optgroup>
-      </select>
-    </div>
-  </div>
-
-  <!-- Applicant Card (shown only for application types) -->
-  <div class="card" id="applicantCard" style="display:none;">
-    <h2><span class="num">3a</span> അപേക്ഷകന്റെ വിവരങ്ങൾ</h2>
-    <div class="row">
-      <div class="field">
-        <label for="appName">അപേക്ഷകന്റെ പേര്</label>
-        <input type="text" id="appName" placeholder="ഉദാ: രാജേഷ് കുമാർ കെ.">
-      </div>
-      <div class="field">
-        <label for="appAge">വയസ്സ് / ജനനതീയതി (ഐച്ഛികം)</label>
-        <input type="text" id="appAge" placeholder="ഉദാ: 42 / 15-03-1982">
-      </div>
-    </div>
-    <div class="field">
-      <label for="appAddr">വിലാസം</label>
-      <textarea id="appAddr" style="min-height:60px" placeholder="ഉദാ: 'ശ്രീനിലയം', ആനക്കയം P.O., നിലമ്പൂർ, മലപ്പുറം - 679329"></textarea>
-    </div>
-    <div class="row">
-      <div class="field">
-        <label for="appPhone">ഫോൺ / Mobile (ഐച്ഛികം)</label>
-        <input type="text" id="appPhone" placeholder="ഉദാ: 9876543210">
-      </div>
-      <div class="field">
-        <label for="appId">ID / Aadhaar / Voter ID (ഐച്ഛികം)</label>
-        <input type="text" id="appId" placeholder="ഉദാ: Voter ID: ABC1234567">
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2><span class="num">3</span> <span id="officeCardHeading">ഓഫീസ് വിവരങ്ങൾ</span></h2>
-    <div class="row">
-      <div class="field">
-        <label for="officeName">ഓഫീസിന്റെ പേര്</label>
-        <input type="text" id="officeName" placeholder="ഉദാ: നിലമ്പൂർ മുനിസിപ്പാലിറ്റി">
-      </div>
-      <div class="field">
-        <label for="officeAddr">വിലാസം / ഫോൺ (ഐച്ഛികം)</label>
-        <input type="text" id="officeAddr" placeholder="ഉദാ: നിലമ്പൂർ, മലപ്പുറം - 679329">
-      </div>
-    </div>
-    <div class="row">
-      <div class="field">
-        <label for="fileNo">നമ്പർ / ഫയൽ നം.</label>
-        <input type="text" id="fileNo" placeholder="ഉദാ: B2-1234/2026">
-      </div>
-      <div class="field">
-        <label for="dateField">തീയതി</label>
-        <input type="date" id="dateField">
-      </div>
-    </div>
-  </div>
-
-  <div class="card" id="recipientCard">
-    <h2><span class="num">4</span> സ്വീകർത്താവ്</h2>
-    <div class="field">
-      <label for="toWhom" id="toWhomLabel">ആർക്ക് (പേര്/പദവി/ഓഫീസ്)</label>
-      <input type="text" id="toWhom" placeholder="ഉദാ: അസിസ്റ്റന്റ് എൻജിനീയർ, PWD, നിലമ്പൂർ">
-    </div>
-  </div>
-
-  <div class="card">
-    <h2><span class="num">5</span> വിഷയവും വിവരങ്ങളും</h2>
-    <div class="field">
-      <label for="subject">വിഷയം</label>
-      <input type="text" id="subject" placeholder="ഉദാ: വാർഡ് 12-ലെ റോഡ് അറ്റകുറ്റപ്പണി സംബന്ധിച്ച്">
-    </div>
-    <div class="field">
-      <label for="reference">സൂചന / പരാമർശം (മുൻ കത്തുകൾ ഉണ്ടെങ്കിൽ, ഓരോന്നും പുതിയ വരിയിൽ)</label>
-      <textarea id="reference" placeholder="ഉദാ: 1. ശ്രീ. XXX സമർപ്പിച്ച അപേക്ഷ, dt. 01-06-2026"></textarea>
-    </div>
-    <div class="field">
-      <label for="points" id="pointsLabel">പ്രധാന കാര്യങ്ങൾ (ചെറിയ പോയിന്റുകളായി എഴുതിയാൽ മതി — മലയാളത്തിലോ Manglish-ലോ)</label>
-      <textarea id="points" style="min-height:120px" placeholder="ഉദാ:
-- റോഡിൽ കുഴി രൂപപ്പെട്ടിട്ടുണ്ട്
-- അപകട സാധ്യത ഉള്ളതിനാൽ അടിയന്തിരമായി പരിഹരിക്കണം
-- എസ്റ്റിമേറ്റ് തയ്യാറാക്കി സമർപ്പിക്കാൻ നിർദ്ദേശിക്കുന്നു"></textarea>
-      <div class="hint">Rough ആയി എഴുതിയാൽ മതി, AI അത് ഔദ്യോഗിക ഭാഷയിലാക്കി ശരിയായ ഖണ്ഡികകളാക്കി തരും.</div>
-    </div>
-  </div>
-
-  <div class="card" id="signCard">
-    <h2><span class="num">6</span> <span id="signCardHeading">ഒപ്പ്</span></h2>
-    <div class="row">
-      <div class="field">
-        <label for="signName">ഒപ്പിടുന്ന ആളുടെ പേര് (ഐച്ഛികം)</label>
-        <input type="text" id="signName" placeholder="ഉദാ: കെ. രാജൻ">
-      </div>
-      <div class="field">
-        <label for="signDesig">പദവി</label>
-        <input type="text" id="signDesig" placeholder="ഉദാ: സെക്രട്ടറി">
-      </div>
-    </div>
-  </div>
-
-  <button class="btn-primary" id="generateBtn" type="button">കത്ത് തയ്യാറാക്കുക</button>
-  <div class="status" id="statusBox"></div>
-
-  <div class="card sheet-wrap" style="margin-top:24px;">
-    <h2><span class="num">✓</span> <span id="outputHeadingLabel">തയ്യാറാക്കിയ രേഖ</span></h2>
-    <div class="stamp" id="stamp">അംഗീകൃതം<br>DRAFT</div>
-    <div class="sheet empty" id="outputSheet">ഇവിടെ നിങ്ങളുടെ ഔദ്യോഗിക രേഖ പ്രത്യക്ഷപ്പെടും</div>
-    <div class="output-actions" id="outputActions" style="display:none;">
-      <button class="btn-ghost" id="copyBtn" type="button">പകർത്തുക (Copy)</button>
-      <button class="btn-ghost" id="downloadBtn" type="button">ഡൗൺലോഡ് (.txt)</button>
-    </div>
-  </div>
-  </div><!-- /restOfForm -->
-
-  <footer>API കീ ഈ ബ്രൗസറിൽ മാത്രം സൂക്ഷിക്കുന്നു, മറ്റാർക്കും ലഭ്യമല്ല.</footer>
-</div>
-
-<script>
-const $ = id => document.getElementById(id);
-const docType = $('docType');
-const recipientCard = $('recipientCard');
-const statusBox = $('statusBox');
-const outputSheet = $('outputSheet');
-const outputActions = $('outputActions');
-const stamp = $('stamp');
-
-// default date = today
-$('dateField').valueAsDate = new Date();
-
-const NO_RECIPIENT_TYPES = ['note','order','sanction','memo'];
-const RECIPIENT_LABELS = {
-  letter: 'ആർക്ക് (പേര്/പദവി/ഓഫീസ്)',
-  do_letter: 'ആർക്ക് (പേര്/പദവി, വ്യക്തിപരമായി അഭിസംബോധന ചെയ്യാൻ)',
-  forwarding: 'ആർക്ക് അയക്കുന്നു (പേര്/പദവി/ഓഫീസ്)',
-  reminder: 'ആർക്ക് (മുൻപ് കത്ത് ലഭിച്ചയാൾ)',
-  invitation: 'ആരെ ക്ഷണിക്കുന്നു (പേര്/പദവി)',
-  transfer: 'ജീവനക്കാരന്റെ പേര്/പദവി (സ്ഥലംമാറ്റപ്പെടുന്നയാൾ)',
-  circular: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: എല്ലാ ജീവനക്കാരും)',
-  public_notice: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: പൊതുജനങ്ങൾ)',
-  tender_notice: 'ബാധകമായവർ (ഐച്ഛികം, ഉദാ: കരാറുകാർ)',
-  show_cause: 'ആരുടെ പേരിൽ (ജീവനക്കാരൻ/സ്ഥാപനത്തിന്റെ പേര്, പദവി)',
-  certificate: 'ആർക്കുവേണ്ടി (അപേക്ഷകന്റെ പേര്)',
-  rti_reply: 'അപേക്ഷകന്റെ പേര് / വിലാസം',
-  app_general: 'ആർക്ക് / ഏത് ഓഫീസിൽ (പദവി/ഓഫീസ് പേര്)',
-  app_income: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: വില്ലേജ് ഓഫീസർ, RI, Tahsildar)',
-  app_nativity: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: വില്ലേജ് ഓഫീസർ/Tahsildar)',
-  app_residence: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: വില്ലേജ് ഓഫീസർ/Panchayat Secretary)',
-  app_caste: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Tahsildar/RI)',
-  app_noc: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Panchayat Secretary/Municipality Secretary)',
-  app_building: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Panchayat Secretary/Municipal Engineer)',
-  app_trade: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Panchayat Secretary/Municipal Secretary)',
-  app_pension: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Village Officer/Social Welfare Officer)',
-  app_land: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Village Officer/Tahsildar/RDO)',
-  app_complaint: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: District Collector/Ombudsman)',
-  app_leave: 'ആർക്ക് (Head of Office/Department Officer)',
-  app_scholarship: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Social Welfare Officer/DC Office)',
-  app_water: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: AE KWA/Panchayat Secretary)',
-  app_road: 'ആർക്ക് / ഏത് ഓഫീസിൽ (ഉദാ: Panchayat Secretary/Assistant Engineer)'
-};
-
-const POINTS_LABELS = {
-  rti_reply: 'വിവരാവകാശ ചോദ്യങ്ങൾ (ഓരോ ചോദ്യവും നമ്പറിട്ട് പുതിയ വരിയിൽ എഴുതുക — ചോദ്യം 1, ചോദ്യം 2 ... എന്ന ക്രമത്തിൽ)',
-  default: 'പ്രധാന കാര്യങ്ങൾ (ചെറിയ പോയിന്റുകളായി എഴുതിയാൽ മതി — മലയാളത്തിലോ Manglish-ലോ)',
-  app: 'ആവശ്യം / Details (rough ആയി എഴുതിയാൽ മതി — AI ഔദ്യോഗിക ഭാഷയിൽ മാറ്റും)'
-};
-const APP_TYPES = ['app_general','app_income','app_nativity','app_residence','app_caste','app_noc','app_building','app_trade','app_pension','app_land','app_complaint','app_leave','app_scholarship','app_water','app_road'];
-
-// toggle recipient card + points label + applicant card depending on document type
-function syncFormForType(){
-  const t = docType.value;
-  const isApp = APP_TYPES.includes(t);
-
-  // Applicant card (shown only for application types)
-  $('applicantCard').style.display = isApp ? 'block' : 'none';
-
-  // Office info card header
-  $('officeCardHeading').textContent = isApp ? 'ഓഫീസ് / Authority വിവരങ്ങൾ' : 'ഓഫീസ് വിവരങ്ങൾ';
-  $('officeName').placeholder = isApp ? 'ഉദാ: നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്' : 'ഉദാ: നിലമ്പൂർ മുനിസിപ്പാലിറ്റി';
-
-  // Recipient card
-  if(NO_RECIPIENT_TYPES.includes(t)){
-    recipientCard.style.display = 'none';
-  }else{
-    recipientCard.style.display = 'block';
-    $('toWhomLabel').textContent = RECIPIENT_LABELS[t] || 'ആർക്ക് (പേര്/പദവി/ഓഫീസ്)';
-    $('toWhom').placeholder = isApp ? 'ഉദാ: സെക്രട്ടറി, നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്' : 'ഉദാ: അസിസ്റ്റന്റ് എൻജിനീയർ, PWD, നിലമ്പൂർ';
-  }
-
-  // Points label
-  if(isApp){
-    $('pointsLabel').textContent = POINTS_LABELS.app;
-    $('points').placeholder = 'ഉദാ:\n- ആവശ്യത്തിന്റെ കാരണം\n- ബന്ധപ്പെട്ട details (survey no, ward, dates...)\n- attach ചെയ്ത documents';
-  } else {
-    $('pointsLabel').textContent = POINTS_LABELS[t] || POINTS_LABELS.default;
-    $('points').placeholder = t === 'rti_reply'
-      ? 'ഉദാ:\n1. കഴിഞ്ഞ വർഷം വാർഡ് 12-ൽ അനുവദിച്ച റോഡ് പണികളുടെ എസ്റ്റിമേറ്റ് വിവരം\n2. ടെണ്ടർ നടപടി പൂർത്തിയായോ എന്ന്\n3. കരാറുകാരന്റെ പേരും തുകയും'
-      : `ഉദാ:\n- റോഡിൽ കുഴി രൂപപ്പെട്ടിട്ടുണ്ട്\n- അപകട സാധ്യത ഉള്ളതിനാൽ അടിയന്തിരമായി പരിഹരിക്കണം\n- എസ്റ്റിമേറ്റ് തയ്യാറാക്കി സമർപ്പിക്കാൻ നിർദ്ദേശിക്കുന്നു`;
-  }
-
-  // Sign card heading
-  $('signCardHeading').textContent = isApp ? 'അപേക്ഷകന്റെ ഒപ്പ്' : 'ഒപ്പ്';
-  $('signName').placeholder = isApp ? 'ഉദാ: രാജേഷ് കെ.' : 'ഉദാ: കെ. രാജൻ';
-  $('signDesig').placeholder = isApp ? 'ഐച്ഛികം (ഉദാ: കർഷകൻ/വിദ്യാർത്ഥി)' : 'ഉദാ: സെക്രട്ടറി';
-
-  // Generate button text
-  $('generateBtn').textContent = isApp ? 'അപേക്ഷ തയ്യാറാക്കുക' : 'കത്ത് തയ്യാറാക്കുക';
-  // Output heading
-  $('outputHeadingLabel').textContent = isApp ? '✓ തയ്യാറാക്കിയ അപേക്ഷ' : '✓ തയ്യാറാക്കിയ രേഖ';
-}
-docType.addEventListener('change', syncFormForType);
-syncFormForType();
-
-// --- gate: page 1 (API key) hidden once a working key is saved; page 2+ shown directly ---
-const restOfForm = $('restOfForm');
-const apiKeyCard = $('apiKeyCard');
-function showLetterPage(){
-  apiKeyCard.style.display = 'none';
-  restOfForm.style.display = 'block';
-  restoreDraft();
-}
-function showKeyPage(){
-  apiKeyCard.style.display = 'block';
-  restOfForm.style.display = 'none';
-}
-
-// --- local persistence helper (plain localStorage; works in any browser) ---
-const store = {
-  get(key){
-    try{ const v = localStorage.getItem(key); return v === null ? null : { value: v }; }
-    catch(e){ return null; }
-  },
-  set(key, value){
-    try{ localStorage.setItem(key, value); return true; }
-    catch(e){ return false; }
-  },
-  remove(key){
-    try{ localStorage.removeItem(key); }catch(e){ /* ignore */ }
-  }
-};
-
-// --- persisted storage for API key / model / office defaults ---
-function loadSaved(){
-  try{
-    const r = store.get('letter-tool-settings');
-    if(r && r.value){
-      const s = JSON.parse(r.value);
-      if(s.apiKey) $('apiKey').value = s.apiKey;
-      if(s.model) $('modelName').value = s.model;
-      if(s.officeName) $('officeName').value = s.officeName;
-      if(s.officeAddr) $('officeAddr').value = s.officeAddr;
-    }
-  }catch(e){ /* no saved settings yet */ }
-  // key already saved earlier -> trust it, go straight to letter creation page
-  if($('apiKey').value.trim()) showLetterPage(); else showKeyPage();
-}
-loadSaved();
-
-function showKeyStatus(type, msg){
-  const box = $('keyStatus');
-  box.className = 'status show ' + type;
-  box.textContent = msg;
-}
-
-// --- draft autosave: survives refresh; cleared only via "New Letter" ---
-const DRAFT_FIELDS = ['officeName','officeAddr','fileNo','dateField','toWhom','subject','reference','points','signName','signDesig','appName','appAge','appAddr','appPhone','appId'];
-let draftTimer = null;
-function saveDraftNow(){
-  const draft = { docType: docType.value };
-  DRAFT_FIELDS.forEach(id => draft[id] = $(id).value);
-  if(outputSheet.classList.contains('sheet') && !outputSheet.classList.contains('empty') && !outputSheet.classList.contains('loading')){
-    draft.output = outputSheet.textContent;
-  }
-  store.set('letter-tool-draft', JSON.stringify(draft));
-}
-function saveDraft(){
-  clearTimeout(draftTimer);
-  draftTimer = setTimeout(saveDraftNow, 400);
-}
-function restoreDraft(){
-  try{
-    const r = store.get('letter-tool-draft');
-    if(!r || !r.value) return;
-    const d = JSON.parse(r.value);
-    if(d.docType){ docType.value = d.docType; syncFormForType(); }
-    DRAFT_FIELDS.forEach(id => { if(d[id]) $(id).value = d[id]; });
-    if(d.output){
-      outputSheet.className = 'sheet';
-      outputSheet.textContent = d.output;
-      outputActions.style.display = 'flex';
-      stamp.classList.add('show');
-    }
-  }catch(e){ /* no draft yet */ }
-}
-function clearDraft(){
-  store.remove('letter-tool-draft');
-}
-[...DRAFT_FIELDS, 'docType'].forEach(id => {
-  $(id).addEventListener('input', saveDraft);
-  $(id).addEventListener('change', saveDraft);
-});
-
-$('newLetterBtn').addEventListener('click', () => {
-  docType.value = 'letter';
-  DRAFT_FIELDS.forEach(id => $(id).value = '');
-  $('dateField').valueAsDate = new Date();
-  syncFormForType();
-  outputSheet.className = 'sheet empty';
-  outputSheet.textContent = 'ഇവിടെ നിങ്ങളുടെ ഔദ്യോഗിക രേഖ പ്രത്യക്ഷപ്പെടും';
-  outputActions.style.display = 'none';
-  stamp.classList.remove('show');
-  clearStatus();
-  clearDraft();
-});
-
-function saveSettings(silent){
-  const ok = store.set('letter-tool-settings', JSON.stringify({
-    apiKey: $('apiKey').value.trim(),
-    model: $('modelName').value.trim(),
-    officeName: $('officeName').value.trim(),
-    officeAddr: $('officeAddr').value.trim()
-  }));
-  if(!ok && !silent) showKeyStatus('err', 'സേവ് ചെയ്യാൻ കഴിഞ്ഞില്ല.');
-}
-
-// validate key against Gemini before saving/unlocking, so a bad key never hides the key page
-async function validateApiKey(apiKey){
-  const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(apiKey)}`;
-  const res = await fetch(url);
-  if(!res.ok) throw new Error(`API കീ പരിശോധന പരാജയപ്പെട്ടു (${res.status}). കീ ശരിയാണോ എന്ന് നോക്കുക.`);
-}
-
-$('saveKeyBtn').addEventListener('click', async () => {
-  const apiKey = $('apiKey').value.trim();
-  if(!apiKey){
-    showKeyStatus('err', 'API കീ നൽകുക.');
-    return;
-  }
-  const btn = $('saveKeyBtn');
-  btn.disabled = true;
-  const origText = btn.textContent;
-  btn.textContent = 'പരിശോധിക്കുന്നു...';
-  try{
-    await validateApiKey(apiKey);
-    await saveSettings(true);
-    showKeyStatus('ok', 'കീ ശരിയാണ്, സേവ് ചെയ്തു.');
-    setTimeout(showLetterPage, 500);
-  }catch(e){
-    showKeyStatus('err', e.message || 'API കീ പരിശോധിക്കാൻ കഴിഞ്ഞില്ല.');
-  }finally{
-    btn.disabled = false;
-    btn.textContent = origText;
-  }
-});
-
-$('changeKeyLink').addEventListener('click', (e) => {
-  e.preventDefault();
-  showKeyPage();
-});
-
-function showStatus(type, msg){
-  statusBox.className = 'status show ' + type;
-  statusBox.textContent = msg;
-}
-function clearStatus(){
-  statusBox.className = 'status';
-  statusBox.textContent = '';
-}
-
-const TYPE_LABELS = {
-  letter: 'ഔദ്യോഗിക കത്ത് (Official Letter)',
-  do_letter: 'അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter)',
-  forwarding: 'അയക്കൽ കത്ത് (Forwarding Letter)',
-  reminder: 'ഓർമ്മപ്പെടുത്തൽ കത്ത് (Reminder Letter)',
-  invitation: 'ക്ഷണക്കത്ത് (Invitation Letter)',
-  order: 'ഉത്തരവ് / നടപടിക്രമം (Order/Proceedings)',
-  sanction: 'അനുമതി ഉത്തരവ് (Sanction Order)',
-  transfer: 'സ്ഥലംമാറ്റ ഉത്തരവ് (Transfer Order)',
-  circular: 'സർക്കുലർ (Circular)',
-  public_notice: 'പൊതു അറിയിപ്പ് (Public Notice)',
-  tender_notice: 'ടെണ്ടർ അറിയിപ്പ് (Tender Notice)',
-  show_cause: 'കാരണം കാണിക്കൽ നോട്ടീസ് (Show Cause Notice)',
-  note: 'നോട്ട് (File Note)',
-  memo: 'മെമ്മോറാണ്ടം (Memorandum)',
-  certificate: 'സർട്ടിഫിക്കറ്റ് (Certificate)',
-  rti_reply: 'വിവരാവകാശ മറുപടി (RTI Reply)',
-  app_general: 'പൊതു അപേക്ഷ',
-  app_income: 'വരുമാന സർട്ടിഫിക്കറ്റ് അപേക്ഷ',
-  app_nativity: 'ജനന/നാട്ടുകാർ സർട്ടിഫിക്കറ്റ് അപേക്ഷ',
-  app_residence: 'താമസ സർട്ടിഫിക്കറ്റ് അപേക്ഷ',
-  app_caste: 'ജാതി/കമ്മ്യൂണിറ്റി സർട്ടിഫിക്കറ്റ് അപേക്ഷ',
-  app_noc: 'NOC അപേക്ഷ',
-  app_building: 'കെട്ടിട അനുമതി അപേക്ഷ',
-  app_trade: 'വ്യാപാര ലൈസൻസ് അപേക്ഷ',
-  app_pension: 'പെൻഷൻ/ആനുകൂല്യ അപേക്ഷ',
-  app_land: 'ഭൂമി അനുബന്ധ അപേക്ഷ',
-  app_complaint: 'പരാതി / Grievance Application',
-  app_leave: 'അവധി അപേക്ഷ',
-  app_scholarship: 'സ്കോളർഷിപ്പ്/ആനുകൂല്യ അപേക്ഷ',
-  app_water: 'കുടിവെള്ള/ഡ്രെയിനേജ് കണക്ഷൻ അപേക്ഷ',
-  app_road: 'റോഡ്/ഇൻഫ്രാ ആവശ്യ അപേക്ഷ'
-};
-
-const COMMON_RULES = `
-പൊതു നിയമങ്ങൾ:
-- ലളിതവും സ്പഷ്ടവുമായ ഭരണമലയാളം ഉപയോഗിക്കുക, പഴഞ്ചൻ പദപ്രയോഗങ്ങൾ ഒഴിവാക്കുക.
-- വലിയ വിഷയങ്ങൾ ചെറിയ ഖണ്ഡികകളായി തിരിക്കുക, ആവശ്യമെങ്കിൽ നമ്പറിടുക.
-- ആവർത്തനം ഒഴിവാക്കുക, വസ്തുതകൾ മാത്രം എഴുതുക.
-- എല്ലാ കത്തുകളും/ഉത്തരവുകളും ഓഫീസ് മേധാവിയുടെ പേരിൽ ഇറങ്ങുന്നതായി കണക്കാക്കുക.`;
-
-const FORMAT_GUIDE = {
-  letter: `ഔദ്യോഗിക കത്ത് (Official Letter): ഓഫീസ് ഹെഡർ, നമ്പർ/തീയതി, സ്വീകർത്താവിന്റെ വിലാസം, "വിഷയം:", ആവശ്യമെങ്കിൽ "സൂചന:", എന്നിട്ട് മാന്യമായ ഖണ്ഡികകളായി ഉള്ളടക്കം, ഒടുവിൽ "വിശ്വസ്തതയോടെ" എന്നും ഒപ്പ്/പദവിയും.` + COMMON_RULES,
-
-  do_letter: `അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter): ഇത് രണ്ട് ഉദ്യോഗസ്ഥർ തമ്മിലുള്ള വ്യക്തിപരവും എന്നാൽ ഔദ്യോഗികവുമായ കത്താണ്. "പ്രിയപ്പെട്ട ശ്രീ. [പേര്]," എന്ന് തുടങ്ങി, സൗഹാർദ്ദപരവും എന്നാൽ professional ആയ ഭാഷയിൽ വിഷയം അവതരിപ്പിക്കുക, ഒടുവിൽ "സ്നേഹപൂർവ്വം" പോലുള്ള closing ഉം ഒപ്പും. ഔപചാരിക ഹെഡർ formatting കുറവായിരിക്കും.` + COMMON_RULES,
-
-  forwarding: `അയക്കൽ കത്ത് (Forwarding Letter): ഒരു രേഖ/അപേക്ഷ മറ്റൊരു ഓഫീസിലേക്ക് കൈമാറുമ്പോൾ ഉപയോഗിക്കുന്നത്. ഹെഡർ, "വിഷയം:", "സൂചന:" (ഏത് അപേക്ഷ/രേഖയാണ് അയക്കുന്നതെന്ന്), തുടർന്ന് ഹ്രസ്വമായി "മേൽ സൂചിപ്പിച്ച രേഖ ഇതോടൊപ്പം അയക്കുന്നു, ആവശ്യമായ നടപടി സ്വീകരിക്കണമെന്ന് അഭ്യർത്ഥിക്കുന്നു" എന്ന മട്ടിൽ ഉള്ളടക്കം.` + COMMON_RULES,
-
-  reminder: `ഓർമ്മപ്പെടുത്തൽ കത്ത് (Reminder Letter): മുൻപ് അയച്ച കത്തിന് മറുപടി ലഭിക്കാത്തതിനാൽ ഓർമ്മപ്പെടുത്തുന്നത്. "സൂചന:" ഭാഗത്ത് മുൻ കത്തിന്റെ വിവരം നിർബന്ധമായും നൽകുക. ഭാഷ മാന്യമായിരിക്കണം, എന്നാൽ വേഗം മറുപടി/നടപടി ആവശ്യപ്പെടുന്ന ഊന്നൽ വേണം.` + COMMON_RULES,
-
-  invitation: `ക്ഷണക്കത്ത് (Invitation Letter): ഒരു ചടങ്ങ്/യോഗം/പരിപാടിയിലേക്ക് ക്ഷണിക്കുന്ന കത്ത്. ചടങ്ങിന്റെ പേര്, തീയതി, സമയം, സ്ഥലം എന്നിവ വ്യക്തമായി ഉൾപ്പെടുത്തുക. ഭാഷ ഊഷ്മളവും മാന്യവുമായിരിക്കണം, ഒടുവിൽ പങ്കെടുക്കണമെന്ന് അഭ്യർത്ഥിക്കുക.` + COMMON_RULES,
-
-  order: `ഉത്തരവ് / നടപടിക്രമം (Order/Proceedings): "പരാമർശം (സൂചന)" ഭാഗം, തുടർന്ന് വസ്തുത വിശദീകരണം (ഫയലിൽ എന്താണ് പരിശോധിച്ചത്), ഒടുവിൽ "...ഇതിനാൽ ഉത്തരവാകുന്നു." എന്ന രീതിയിൽ അന്തിമ തീരുമാനം കൃത്യമായി, സംശയത്തിനിടയില്ലാതെ പറയണം. അവസാനം "പകർപ്പ്" (Copy to) ആർക്കൊക്കെ അയക്കണം എന്നത് സൂചിപ്പിക്കാം.` + COMMON_RULES,
-
-  sanction: `അനുമതി ഉത്തരവ് (Sanction Order): ഏത് ആവശ്യത്തിനാണ് അനുമതി/തുക sanction ചെയ്യുന്നത് എന്ന് വ്യക്തമായി പറയുക. ബാധകമായ ചട്ടം/മാനദണ്ഡം സൂചിപ്പിക്കുക, തുക/നിബന്ധനകൾ ഉണ്ടെങ്കിൽ വ്യക്തമായി എടുത്തുപറയുക, ഒടുവിൽ "...സാങ്ഷൻ ചെയ്ത് ഉത്തരവാകുന്നു." എന്ന ക്ലോസോടെ അവസാനിപ്പിക്കുക.` + COMMON_RULES,
-
-  transfer: `സ്ഥലംമാറ്റ ഉത്തരവ് (Transfer Order): ജീവനക്കാരന്റെ പേര്, നിലവിലെ തസ്തിക/ഓഫീസ്, പുതിയ തസ്തിക/ഓഫീസ്, പ്രാബല്യം വരുന്ന തീയതി എന്നിവ വ്യക്തമായി ഉൾപ്പെടുത്തുക. ഒടുവിൽ ചാർജ് ഒഴിയാനും ഏറ്റെടുക്കാനുമുള്ള നിർദ്ദേശം ചേർക്കുക.` + COMMON_RULES,
-
-  circular: `സർക്കുലർ (Circular): നിർദ്ദേശം/അറിയിപ്പ് വ്യക്തമായി, ബാധകമായവർ ആരെല്ലാം എന്ന് വ്യക്തമാക്കി എഴുതുക. സാഹചര്യത്തിനനുസരിച്ച് ഭാഷ കർശനമോ സാധാരണ നിലയിലോ ആകാം. പാലിക്കേണ്ട സമയപരിധി ഉണ്ടെങ്കിൽ എടുത്തുപറയുക.` + COMMON_RULES,
-
-  public_notice: `പൊതു അറിയിപ്പ് (Public Notice): പൊതുജനങ്ങൾക്ക് വേണ്ടിയുള്ള അറിയിപ്പ്. ആരെ ബാധിക്കുന്നു, എന്താണ് കാര്യം, എന്ത് നടപടി വേണം/എപ്പോൾ എന്നിവ ലളിതമായി, എല്ലാവർക്കും മനസ്സിലാവുന്ന ഭാഷയിൽ എഴുതുക. അവസാന തീയതി/സമയപരിധി ഉണ്ടെങ്കിൽ എടുത്തുപറയുക.` + COMMON_RULES,
-
-  tender_notice: `ടെണ്ടർ അറിയിപ്പ് (Tender Notice): പണിയുടെ/സേവനത്തിന്റെ പേര്, എസ്റ്റിമേറ്റ് തുക (ലഭ്യമെങ്കിൽ), അപേക്ഷിക്കാനുള്ള യോഗ്യത, ടെണ്ടർ സമർപ്പിക്കേണ്ട അവസാന തീയതി/സമയം/സ്ഥലം എന്നിവ വ്യക്തമായി, structured ആയി ഉൾപ്പെടുത്തുക.` + COMMON_RULES,
-
-  show_cause: `കാരണം കാണിക്കൽ നോട്ടീസ് (Show Cause Notice): ആരോപണം/വീഴ്ച എന്താണെന്ന് വസ്തുതാപരമായി, കൃത്യമായി വിവരിക്കുക. ബാധകമായ ചട്ടം സൂചിപ്പിക്കുക. നിശ്ചിത ദിവസത്തിനകം എഴുതി മറുപടി നൽകാൻ നിർദ്ദേശിക്കുക, മറുപടി ലഭിക്കാത്ത പക്ഷം തുടർനടപടി സ്വീകരിക്കുമെന്ന് വ്യക്തമാക്കുക. ഭാഷ ഔപചാരികവും കർശനവുമായിരിക്കണം, എന്നാൽ ആരോപണവിധേയന് ന്യായമായ അവസരം നൽകുന്ന രീതിയിലാവണം.` + COMMON_RULES,
-
-  note: `നോട്ട് (File Note): "വായിക്കുക:" എന്ന ഭാഗത്ത് സൂചനകൾ, പിന്നെ വിഷയത്തിന്റെ ഹ്രസ്വ വിവരണം, ബാധകമായ ചട്ടം/നിയമം സൂചിപ്പിക്കൽ, ഒടുവിൽ ശുപാർശ/നിർദ്ദേശം. ഭാഷ objective ആയിരിക്കണം, വ്യക്തിപരമായ അഭിപ്രായം ഒഴിവാക്കുക.` + COMMON_RULES,
-
-  memo: `മെമ്മോറാണ്ടം (Memorandum): ഇത് ഒരു ഓഫീസിനുള്ളിലെ internal ആശയവിനിമയത്തിനാണ്, section-കൾ തമ്മിൽ വിവരം കൈമാറാൻ. ഹ്രസ്വവും നേരിട്ടുള്ളതുമായ ഭാഷയിൽ, "ഇനിപ്പറയുന്ന വിവരം/രേഖകൾ ആവശ്യമാണ്" എന്ന മട്ടിൽ കാര്യം അവതരിപ്പിക്കുക.` + COMMON_RULES,
-
-  certificate: `സർട്ടിഫിക്കറ്റ് (Certificate): "ഇതിനാൽ സാക്ഷ്യപ്പെടുത്തുന്നത് എന്തെന്നാൽ..." എന്ന ഔപചാരിക ശൈലിയിൽ, അപേക്ഷകന്റെ പേര്/വിവരം, എന്തിനാണ് സാക്ഷ്യപ്പെടുത്തുന്നത് എന്നത് കൃത്യമായി, നിയമപരമായി സാധുതയുള്ള ഭാഷയിൽ എഴുതുക. ഒപ്പ്, പദവി, സീൽ/മുദ്ര ഉണ്ടാവേണ്ട സ്ഥലം സൂചിപ്പിക്കുക.` + COMMON_RULES,
-
-  app_general: `പൊതു അപേക്ഷ (General Application): ഒരു സാധാരണ പൗരൻ ഒരു സർക്കാർ/തദ്ദേശ ഓഫീസിൽ ഏതെങ്കിലും ആവശ്യത്തിനായി സമർപ്പിക്കുന്ന അപേക്ഷ. ഘടന: ആദ്യം "മഹോദയ/മഹോദയേ," എന്ന അഭിസംബോധന, തുടർന്ന് അപേക്ഷകന്റെ പേര്/വിലാസം/ബന്ധം, ശേഷം ആവശ്യം/പ്രശ്നം വ്യക്തമായി, കഴിഞ്ഞ ശ്രമങ്ങൾ ഉണ്ടെങ്കിൽ പരാമർശം, ഒടുവിൽ "അപേക്ഷകൻ/അപേക്ഷക" ഒപ്പ്, വിലാസം, ദിനാംകം. ഭാഷ ലളിതവും മാന്യവുമായ ഔദ്യോഗിക മലയാളം.` + COMMON_RULES,
-
-  app_income: `വരുമാന സർട്ടിഫിക്കറ്റ് അപേക്ഷ: അപേക്ഷകന്റെ കുടുംബ വരുമാന വിവരം (ഉറവിടങ്ങൾ, ഏകദേശ തുക), ആവശ്യം (സ്കോളർഷിപ്പ്/ജോലി/ആനുകൂല്യം/കോടതി), ബന്ധപ്പെട്ട ഉദ്യോഗസ്ഥൻ/ഗ്രാമ ഓഫീസർ/വില്ലേജ് ഓഫീസർ മുഖേന verify ചെയ്യണം എന്ന അഭ്യർത്ഥന. വരുമാന വിവരം സൂക്ഷ്മമായും സത്യസന്ധമായും നൽകുക, ആനുകൂല്യ ഉദ്ദേശ്യം വ്യക്തമാക്കുക.` + COMMON_RULES,
-
-  app_nativity: `ജനന/നാട്ടുകാർ സർട്ടിഫിക്കറ്റ് അപേക്ഷ: അപേക്ഷകൻ ഈ ഗ്രാമ/ഓഫീസ് പരിധിയിൽ ജനിച്ചതും/നിരന്തരം താമസിക്കുന്നതും, ഉദ്ദേശ്യം (ജോലി/ഉദ്യോഗ ആനുകൂല്യം/ഇ-ടെൻഡർ/ആനുകൂല്യം), ആവശ്യമായ രേഖകൾ ഉള്ളതെന്ന് ഉറപ്പ്. ജനനതീയതി, ജന്മഗ്രാമം, ഇപ്പോഴത്തെ മേൽവിലാസം വ്യക്തമായി നൽകുക.` + COMMON_RULES,
-
-  app_residence: `താമസ സർട്ടിഫിക്കറ്റ് അപേക്ഷ: അപേക്ഷകൻ ആ സ്ഥലത്ത് എത്ര വർഷമായി/എന്ന് മുതൽ താമസിക്കുന്നു, ഉദ്ദേശ്യം (ആനുകൂല്യം/ജോലി/പ്രവേശനം), Ration Card/Voter ID/Electricity Bill പ്രകാരമുള്ള വിലാസ തെളിവ് ഉണ്ടെന്ന് സൂചിപ്പിക്കുക. കാലദൈർഘ്യം വ്യക്തമായി സൂചിപ്പിക്കുക.` + COMMON_RULES,
-
-  app_caste: `ജാതി/കമ്മ്യൂണിറ്റി സർട്ടിഫിക്കറ്റ് അപേക്ഷ: അപേക്ഷകന്റെ ജാതി/മത/കമ്മ്യൂണിറ്റി, Schedule Caste/Schedule Tribe/OBC/ഏത് list ൽ ഉൾപ്പെടുന്നു, ആ ഉദ്ദേശ്യം (ജോലി/education/ആനുകൂല്യം), ബന്ധപ്പെട്ട revenue authority/RI/Tahsildar അനുമതി ആവശ്യം. തെളിവ് ഉണ്ടെന്ന് ഉറപ്പ്.` + COMMON_RULES,
-
-  app_noc: `NOC അപേക്ഷ (No Objection Certificate): ഏത് ആവശ്യത്തിന് NOC വേണം (കെട്ടിടം/ബിസിനസ്/ലൈസൻസ്/ആനുകൂല്യം), ആ activity/plan-ന്റെ സ്ഥലം/സ്വഭാവം, ബന്ധപ്പെട്ട dept-ന് (Fire/Pollution/Panchayat/Municipality) submission, ആ office ഒരു objection ഇല്ലെന്ന് confirm ചെയ്തു NOC നൽകണം എന്ന് ആവശ്യം.` + COMMON_RULES,
-
-  app_building: `കെട്ടിട നിർമ്മാണ/ഉപയോഗ അനുമതി അപേക്ഷ: ഭൂമി/പ്ലോട്ട് വിവരം (Survey No., Area), നിർദ്ദേശിക്കുന്ന കെട്ടിടത്തിന്റെ ഉദ്ദേശ്യം (വാസസ്ഥലം/വ്യാപാരം/ഗോഡൗൺ), ഫ്ലോർ ഏരിയ, Building Plan/Permit-ന്റെ status, ആർക്കിടക്ട്/Structural Engineer-ന്റെ approve ഉണ്ടോ. Kerala Municipality Building Rules/Panchayat Building Rules ൽ ഉള്ള requirements mention ചെയ്ത് permit നൽകണം.` + COMMON_RULES,
-
-  app_trade: `വ്യാപാര ലൈസൻസ് അപേക്ഷ: ബിസിനസ്/കടയുടെ പേര്, ഉദ്ദേശ്യം (ഏത് trade), സ്ഥലം/Ward, ഉടമ വിവരം, ആദ്യ ലൈസൻസ്/renewal/amendment, ആവശ്യ NOC-കൾ ഉണ്ടെന്ന് confirm, Tax/Fee remit ചെയ്തതായി reference. Municipality/Panchayat Act പ്രകാരം ലൈസൻസ് നൽകണം.` + COMMON_RULES,
-
-  app_pension: `പെൻഷൻ/ആനുകൂല്യ അപേക്ഷ: ഏത് ആനുകൂല്യം (വൃദ്ധ/Widow/Disability/Farmer pension), അർഹതയ്ക്കുള്ള കാരണം, വയസ്/disability/status proof, family income, Bank account details (ആനുകൂല്യം direct transfer-ന്), പ്രാദേശിക ward member/officer confirm ചെയ്തതായി reference. Kerala Social Security Mission/Social Welfare Dept-ൽ process ആകണം.` + COMMON_RULES,
-
-  app_land: `ഭൂമി/ഭൂഉടമ അനുബന്ധ അപേക്ഷ: Survey/Re-survey/Mutation/Patta transfer/Land Record correction ഏതാണ്, Survey No./Plot No., current owner, ആവശ്യ മാറ്റം, Land Revenue Dept/Village Office-ൽ submission, ബന്ധപ്പെട്ട sale deed/inheritance document reference. Tahsildar/RDO ദ്വാര approve ചെയ്ത് Record update ആകണം.` + COMMON_RULES,
-
-  app_complaint: `പരാതി / Grievance Application: ആർക്കെതിരെ/ഏത് വിഷയത്തിൽ പരാതി, നടന്ന സംഭവം/problem (തീയതി/സ്ഥലം/വ്യക്തി), ഇതിനുമുൻപ് ഇതേ authority/higher level-ൽ approach ചെയ്തോ, ആഗ്രഹിക്കുന്ന പ്രതിവിധി (action/compensation/investigation), തെളിവ്/ദൃക്‍സാക്ഷി ഉണ്ടെങ്കിൽ mention. ഭാഷ ആരോപണ സ്വഭാവം ഒഴിവാക്കി, objective ആയി, relevant facts മാത്രം.` + COMMON_RULES,
-
-  app_leave: `അവധി അപേക്ഷ (Leave Application): ജീവനക്കാരന്റെ പേര്/designation/office, ഏത് leave (Casual/Medical/Earned/Maternity/Paternity), ആവശ്യ തീയതികൾ, leave-ന്റെ കാരണം (medical-ആണ് certificate attach ചെയ്യണം), ആ കാലത്ത് duty alternative arrangement ഉണ്ടോ, Leave Balance reference. Service Rules-ൽ entitlement ഉള്ള leave ആണ് apply ചെയ്യുന്നത്.` + COMMON_RULES,
-
-  app_scholarship: `സ്കോളർഷിപ്പ്/ആനുകൂല്യ അപേക്ഷ: ഏത് scheme (Central/State/SC/ST/OBC/Minority/Merit), Applicant-ന്റെ educational qualification, family income, ജാതി/community (ബാധകം ആണെങ്കിൽ), marks/grade, institution details, Bank account, ആവശ്യ certificates (income/caste/nativity/marks list). Scholarship Portal/Social Welfare Dept-ൽ process ആകണം.` + COMMON_RULES,
-
-  app_water: `കുടിവെള്ള/ഡ്രെയിനേജ് കണക്ഷൻ അപേക്ഷ: ഏത് connection (New/Additional/Repair/Sewerage), Property/House address/Ward, Survey No., owner details, ഇപ്പോഴത്തെ water source, KWA/Municipality pipe line ആ area-ൽ ഉണ്ടോ, application fee/deposit ഇക്കൂടെ attach ചെയ്തതായി reference, Priority (medical/general) reason.` + COMMON_RULES,
-
-  app_road: `റോഡ്/ഇൻഫ്രാ ആവശ്യ അപേക്ഷ: ഏത് road/bridge/streetlight/drain ആവശ്യം, ആ location (Ward/Survey No.), നിലവിലെ situation/problem (photos attach ചെയ്തതായി reference), ബാധിക്കപ്പെടുന്ന ജനങ്ങളുടെ എണ്ണം, ഏതെങ്കിലും estimate/survey ഉണ്ടോ, Grama Panchayat/Municipality standing committee-ൽ include ചെയ്ത് estimate approve ചെയ്യണം.` + COMMON_RULES,
-
-  rti_reply: `വിവരാവകാശ മറുപടി (RTI Reply): ഇത് Right to Information Act, 2005 (കേന്ദ്ര നിയമം), Kerala RTI Rules, 2006 എന്നിവ പ്രകാരം State Public Information Officer (SPIO) നൽകുന്ന ഔദ്യോഗിക മറുപടിയാണ്.
-
-നിർബന്ധമായും പാലിക്കേണ്ട ഘടന:
-1. ഹെഡർ: ഓഫീസ് പേര്, "SPIO-യുടെ കാര്യാലയം" / SPIO പദവി, നമ്പർ, തീയതി.
-2. "വിഷയം: വിവരാവകാശ നിയമം 2005 പ്രകാരമുള്ള അപേക്ഷ - മറുപടി സംബന്ധിച്ച്" എന്ന മട്ടിൽ.
-3. "സൂചന:" ഭാഗത്ത് അപേക്ഷകൻ സമർപ്പിച്ച അപേക്ഷയുടെ തീയതി/നമ്പർ (ലഭ്യമെങ്കിൽ).
-4. ഓരോ ചോദ്യത്തിനും അതേ നമ്പറിൽ, ഒറ്റ ഖണ്ഡികയായി ഉത്തരം നൽകുക: "ചോദ്യം 1:" എന്നിട്ട് ചോദ്യം ആവർത്തിക്കാതെ "ഉത്തരം:" എന്ന് മാത്രം എഴുതി മറുപടി എഴുതുക.
-5. ഓരോ ഉത്തരവും ചോദ്യത്തിൽ ചോദിച്ചതിന് മാത്രം ഉള്ള മറുപടിയായിരിക്കണം — ചോദിക്കാത്ത കാര്യങ്ങൾ കൂട്ടിച്ചേർക്കരുത്, ചോദ്യങ്ങൾ തമ്മിൽ കൂട്ടിക്കുഴയ്ക്കരുത്.
-6. ഉത്തരത്തിന്റെ സ്വഭാവം നൽകിയ വിവരത്തിന് അനുസരിച്ച് താഴെ പറയുന്നവയിൽ ഏതെങ്കിലും ആയിരിക്കാം (നൽകിയ പോയിന്റുകൾ അനുസരിച്ച് തിരഞ്ഞെടുക്കുക, ഊഹിച്ച് പുതിയ വിവരം ഉണ്ടാക്കരുത്):
-   - ആവശ്യപ്പെട്ട വിവരം office-ൽ ലഭ്യമല്ലെങ്കിൽ: "ആവശ്യപ്പെട്ട വിവരം ഈ ഓഫീസിൽ ലഭ്യമല്ല" എന്ന് വ്യക്തമായി പറയുക.
-   - വിവരം ലഭ്യമെങ്കിൽ: ചോദിച്ച വിവരം കൃത്യമായി നൽകുക, അല്ലെങ്കിൽ "ഇതോടൊപ്പം ഉള്ള അനുബന്ധത്തിൽ നൽകിയിരിക്കുന്നു" എന്ന് പറയുക.
-   - നടപടി ആരംഭിച്ചിട്ടില്ലെങ്കിൽ: "ഈ വിഷയത്തിൽ നടപടിക്രമങ്ങൾ ആരംഭിച്ചിട്ടില്ല" എന്ന് പറയുക.
-   - രേഖകൾ പരിശോധിക്കാവുന്നതാണെങ്കിൽ: "അപേക്ഷകന് നേരിട്ട് ഓഫീസിൽ എത്തി ബന്ധപ്പെട്ട രേഖകൾ പരിശോധിക്കാവുന്നതാണ്" എന്ന് പറയുക.
-   - വിവരം മറ്റൊരു ഓഫീസിന്റെ പരിധിയിലാണെങ്കിൽ: RTI Act Section 6(3) പ്രകാരം ബന്ധപ്പെട്ട ഓഫീസിലേക്ക് അപേക്ഷ കൈമാറിയതായി പറയുക.
-7. ഒടുവിൽ: "ഈ മറുപടിയിൽ തൃപ്തനല്ലെങ്കിൽ, ഇത് ലഭിച്ച് 30 ദിവസത്തിനകം ഒന്നാം അപ്പലേറ്റ് അതോറിറ്റിക്ക് അപ്പീൽ സമർപ്പിക്കാവുന്നതാണ് (RTI Act 2005, Section 19(1))" എന്ന ഖണ്ഡിക നിർബന്ധമായും ചേർക്കുക.
-8. SPIO-യുടെ ഒപ്പ്/പദവിയോടെ അവസാനിപ്പിക്കുക.` + COMMON_RULES
-};
-
-function buildPrompt(data){
-  const isApp = APP_TYPES.includes(data.docType);
-  const applicantBlock = isApp ? `
-അപേക്ഷകന്റെ വിവരങ്ങൾ:
-- പേര്: ${data.appName || '(നൽകിയിട്ടില്ല)'}
-- വയസ്സ്/ജനനതീയതി: ${data.appAge || '(നൽകിയിട്ടില്ല)'}
-- വിലാസം: ${data.appAddr || '(നൽകിയിട്ടില്ല)'}
-- ഫോൺ: ${data.appPhone || '(നൽകിയിട്ടില്ല)'}
-- ID/Proof: ${data.appId || '(നൽകിയിട്ടില്ല)'}` : '';
-
-  const systemContext = isApp
-    ? 'നീ ഒരു സാധാരണ Kerala പൗരനെ സഹായിക്കുന്ന document expert ആണ്. ആ പൗരൻ ഒരു government/local body office-ൽ അപേക്ഷ നൽകേണ്ടതുണ്ട്. നൽകിയ വിവരങ്ങൾ ഉപയോഗിച്ച് ഉചിതമായ ഭരണമലയാള ശൈലിയിൽ ഒരു ഔദ്യോഗിക അപേക്ഷ തയ്യാറാക്കുക.'
-    : 'നീ കേരള സർക്കാർ/തദ്ദേശസ്വയംഭരണ സ്ഥാപനങ്ങളിലെ ഫയൽ എഴുത്തിൽ വിദഗ്ധനായ ഒരു സീനിയർ ഓഫീസ് ഉദ്യോഗസ്ഥനാണ്. താഴെ നൽകുന്ന വിവരങ്ങൾ ഉപയോഗിച്ച് ശരിയായ ഭരണമലയാള ശൈലിയിൽ ഒരു ${TYPE_LABELS[data.docType]} തയ്യാറാക്കുക.';
-
-  return `${systemContext}
-
-ഈ രേഖാ തരത്തിനുള്ള format നിർദ്ദേശം:
-${FORMAT_GUIDE[data.docType]}
-
-നൽകിയ വിവരങ്ങൾ:
-- ${isApp ? 'Authority/ഓഫീസ്' : 'ഓഫീസ്'}: ${data.officeName || '(നൽകിയിട്ടില്ല)'}
-- വിലാസം: ${data.officeAddr || '(നൽകിയിട്ടില്ല)'}
-- ${isApp ? 'Application Ref No. (ഐച്ഛികം)' : 'നമ്പർ'}: ${data.fileNo || '(നൽകിയിട്ടില്ല)'}
-- തീയതി: ${data.dateStr || '(നൽകിയിട്ടില്ല)'}
-- ${isApp ? 'ആർക്ക് / ഏത് ഓഫീസ്' : 'സ്വീകർത്താവ്'}: ${data.toWhom || '(ബാധകമല്ല)'}
-- വിഷയം: ${data.subject || '(നൽകിയിട്ടില്ല)'}
-- സൂചന/Reference: ${data.reference || '(ഇല്ല)'}${applicantBlock}
-- ${data.docType === 'rti_reply' ? 'വിവരാവകാശ ചോദ്യങ്ങൾ (നമ്പറിട്ടത്)' : isApp ? 'ആവശ്യം / Details (rough notes)' : 'പ്രധാന കാര്യങ്ങൾ (rough notes)'}: 
-${data.points || '(നൽകിയിട്ടില്ല)'}
-- ${isApp ? 'അപേക്ഷകൻ' : 'ഒപ്പ്'}: ${data.signName || ''} ${data.signDesig ? '(' + data.signDesig + ')' : ''}
-
-നിർദ്ദേശങ്ങൾ:
-- മുകളിലെ rough പോയിന്റുകൾ ശരിയായ ഔദ്യോഗിക ഖണ്ഡികകളാക്കി മാറ്റുക, വെറുതെ അതേപടി പകർത്തരുത്.
-- അന്തിമ ഔട്ട്പുട്ടിൽ കത്ത്/രേഖ മാത്രം നൽകുക — അധിക വിശദീകരണമോ മാർക്ക്ഡൗൺ ചിഹ്നങ്ങളോ (** പോലുള്ളവ) ചേർക്കരുത്.
-- ശരിയായ വരി ഇടവേളകളോടെ, വായിക്കാൻ എളുപ്പമുള്ള രീതിയിൽ format ചെയ്യുക.${data.docType === 'rti_reply' ? `
-
-RTI-സംബന്ധിച്ച കർശന നിർദ്ദേശങ്ങൾ (നിർബന്ധം):
-- മുകളിൽ നൽകിയ ഓരോ ചോദ്യത്തിനും അതേ ക്രമനമ്പറിൽ, ഒന്നിനൊന്ന് വേറിട്ട ഖണ്ഡികയായി മാത്രം ഉത്തരം നൽകുക. ചോദ്യം 1-ന് ഉത്തരം 1 മാത്രം, ചോദ്യം 2-ന് ഉത്തരം 2 മാത്രം.
-- ഓരോ ഉത്തരവും ആ ചോദ്യത്തിൽ ചോദിച്ച കാര്യത്തിന് മാത്രമുള്ള മറുപടിയായിരിക്കണം. ചോദിക്കാത്ത അധിക വിവരം ഒരിക്കലും കൂട്ടിച്ചേർക്കരുത്.
-- മുകളിൽ നൽകിയ പോയിന്റുകളിൽ ഇല്ലാത്ത ഒരു വസ്തുതയും സ്വയം ഊഹിച്ച് ഉണ്ടാക്കരുത് — വിവരം ലഭ്യമല്ല/ലഭ്യമാണ്/നടപടി ആരംഭിച്ചിട്ടില്ല/രേഖകൾ പരിശോധിക്കാം എന്നിവയിൽ ഏതാണ് ബാധകം എന്ന് നൽകിയ പോയിന്റുകളിൽ നിന്ന് മാത്രം തീരുമാനിക്കുക.
-- ചോദ്യങ്ങളുടെ എണ്ണം എത്രയാണെങ്കിലും അത്ര ഉത്തരങ്ങൾ മാത്രം നൽകുക — കൂടുതലോ കുറവോ പാടില്ല.` : ''}`;
-}
-
-async function generateLetter(){
-  clearStatus();
-  const apiKey = $('apiKey').value.trim();
-  const model = $('modelName').value.trim() || 'gemini-3.5-flash';
-
-  if(!apiKey){
-    showStatus('err', 'API കീ നൽകുക.');
-    return;
-  }
-  const data = {
-    docType: docType.value,
-    officeName: $('officeName').value.trim(),
-    officeAddr: $('officeAddr').value.trim(),
-    fileNo: $('fileNo').value.trim(),
-    dateStr: $('dateField').value ? new Date($('dateField').value).toLocaleDateString('en-GB') : '',
-    toWhom: $('toWhom').value.trim(),
-    subject: $('subject').value.trim(),
-    reference: $('reference').value.trim(),
-    points: $('points').value.trim(),
-    signName: $('signName').value.trim(),
-    signDesig: $('signDesig').value.trim(),
-    appName: $('appName').value.trim(),
-    appAge: $('appAge').value.trim(),
-    appAddr: $('appAddr').value.trim(),
-    appPhone: $('appPhone').value.trim(),
-    appId: $('appId').value.trim()
-  };
-
-  const isAppType = APP_TYPES.includes(data.docType);
-  if(!data.subject || !data.points){
-    showStatus('err', isAppType ? 'വിഷയവും ആവശ്യ വിവരങ്ങളും നിർബന്ധമായും നൽകുക.' : 'വിഷയവും പ്രധാന കാര്യങ്ങളും നിർബന്ധമായും നൽകുക.');
-    return;
-  }
-  if(isAppType && !data.appName){
-    showStatus('err', 'അപേക്ഷകന്റെ പേര് നൽകുക.');
-    return;
-  }
-
-  const btn = $('generateBtn');
-  btn.disabled = true;
-  btn.textContent = 'തയ്യാറാക്കുന്നു...';
-  stamp.classList.remove('show');
-  outputActions.style.display = 'none';
-  outputSheet.className = 'sheet loading';
-  outputSheet.innerHTML = '<span class="spinner"></span> AI രേഖ തയ്യാറാക്കുന്നു...';
-
-  try{
-    const prompt = buildPrompt(data);
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.4 }
-      })
-    });
-
-    if(!res.ok){
-      const errBody = await res.text();
-      throw new Error(`API പിശക് (${res.status}): ${errBody.slice(0,200)}`);
-    }
-
-    const json = await res.json();
-    const text = json?.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('\n').trim();
-
-    if(!text){
-      throw new Error('AI-യിൽ നിന്ന് ഔട്ട്പുട്ട് ലഭിച്ചില്ല. വീണ്ടും ശ്രമിക്കുക.');
-    }
-
-    outputSheet.className = 'sheet';
-    outputSheet.textContent = text;
-    outputActions.style.display = 'flex';
-    setTimeout(() => stamp.classList.add('show'), 150);
-    showStatus('ok', 'തയ്യാറാക്കി പൂർത്തിയായി.');
-    saveSettings(true);
-    saveDraftNow();
-  }catch(e){
-    outputSheet.className = 'sheet empty';
-    outputSheet.textContent = 'രേഖ തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല.';
-    showStatus('err', e.message || 'എന്തോ പിശക് സംഭവിച്ചു.');
-  }finally{
-    btn.disabled = false;
-    btn.textContent = APP_TYPES.includes(docType.value) ? 'അപേക്ഷ തയ്യാറാക്കുക' : 'കത്ത് തയ്യാറാക്കുക';
-  }
-}
-
-$('generateBtn').addEventListener('click', generateLetter);
-
-$('copyBtn').addEventListener('click', async () => {
-  try{
-    await navigator.clipboard.writeText(outputSheet.textContent);
-    showStatus('ok', 'പകർത്തി.');
-  }catch(e){
-    showStatus('err', 'പകർത്താൻ കഴിഞ്ഞില്ല.');
-  }
-});
-
-$('downloadBtn').addEventListener('click', () => {
-  const blob = new Blob([outputSheet.textContent], {type: 'text/plain;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  const type = docType.value;
-  a.download = `${type}-${($('fileNo').value || 'draft').replace(/[^a-zA-Z0-9-]/g,'_')}.txt`;
-  a.click();
-  URL.revokeObjectURL(a.href);
-});
-</script>
+    <script>
+        // ── Data ──
+        const docData = {
+            "applications": {
+                "app_general": "പൊതു അപേക്ഷ (General Application)",
+                "app_income": "വരുമാന Certificate അപേക്ഷ",
+                "app_nativity": "ജനന/നാട്ടുകാർ Certificate",
+                "app_residence": "താമസ Certificate",
+                "app_caste": "ജാതി Certificate",
+                "app_noc": "NOC അപേക്ഷ",
+                "app_building": "കെട്ടിട അനുമതി",
+                "app_trade": "വ്യാപാര ലൈസൻസ്",
+                "app_pension": "പെൻഷൻ/ആനുകൂല്യം",
+                "app_leave": "അവധി അപേക്ഷ (Leave Letter)",
+                "app_complaint": "പരാതി (Complaint)"
+            },
+            "letters": {
+                "letter": "ഔദ്യോഗിക കത്ത് (Official Letter)",
+                "do_letter": "അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter)",
+                "forwarding": "അയക്കൽ കത്ത് (Forwarding)",
+                "reminder": "ഓർമ്മപ്പെടുത്തൽ (Reminder)"
+            },
+            "orders": {
+                "order": "ഉത്തരവ് (Order)",
+                "circular": "സർക്കുലർ (Circular)",
+                "public_notice": "പൊതു അറിയിപ്പ് (Notice)",
+                "rti_reply": "വിവരാവകാശ രേഖ (RTI Request/Reply)"
+            }
+        };
+
+        const placeholders = {
+            "applications": "ഉദാ: \nവിഷയം: കുടിവെള്ള കണക്ഷൻ ലഭിക്കുന്നത് സംബന്ധിച്ച്.\n\nവിവരങ്ങൾ: എന്റെ വീടിന്റെ പണി പൂർത്തിയായി. പുതിയ കുടിവെള്ള കണക്ഷൻ ലഭിക്കാൻ ആവശ്യമായ രേഖകൾ ഇതോടൊപ്പം സമർപ്പിക്കുന്നു. എത്രയും വേഗം നടപടി സ്വീകരിക്കണം...",
+            "letters": "ഉദാ: \nവിഷയം: പുതിയ കമ്പ്യൂട്ടറുകൾ അനുവദിക്കുന്നത് സംബന്ധിച്ച്.\n\nവിവരങ്ങൾ: ഓഫീസിലെ പഴയ 2 കമ്പ്യൂട്ടറുകൾ കേടായതിനാൽ ഫയൽ നീക്കം തടസ്സപ്പെടുന്നുണ്ട്. അതിനാൽ പകരം 2 പുതിയ കമ്പ്യൂട്ടറുകൾ അനുവദിക്കണമെന്ന് അഭ്യർത്ഥിക്കുന്നു...",
+            "rti_reply": "ഉദാ: \n1. പഞ്ചായത്തിൽ കഴിഞ്ഞ സാമ്പത്തിക വർഷം റോഡ് പണിക്കായി എത്ര രൂപ ഫണ്ട് അനുവദിച്ചു?\n2. ഇതിൽ എത്ര രൂപ ചെലവാക്കി?\n3. ബാക്കി തുകയുടെ വിശദാംശങ്ങൾ നൽകുക.",
+            "default": "കത്തിലോ അപേക്ഷയിലോ ഉൾപ്പെടുത്തേണ്ട വിഷയവും മറ്റു പ്രധാന വിവരങ്ങളും ഇവിടെ ടൈപ്പ് ചെയ്യുക..."
+        };
+
+        // ── Initialization ──
+        window.onload = function() {
+            // Load saved API key
+            const savedKey = localStorage.getItem("geminiApiKey");
+            if(savedKey) {
+                document.getElementById("api-key").value = savedKey;
+                document.getElementById("key-status").style.display = "block";
+            }
+            updateDocTypes();
+        };
+
+        // ── UI Interactions ──
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const main = document.getElementById("main-content");
+            sidebar.classList.toggle("collapsed");
+            
+            if(window.innerWidth > 768) {
+                main.classList.toggle("expanded");
+            }
+        }
+
+        function saveApiKey() {
+            const key = document.getElementById("api-key").value.trim();
+            if(key) {
+                localStorage.setItem("geminiApiKey", key);
+                document.getElementById("key-status").style.display = "block";
+                alert("API Key saved successfully!");
+            } else {
+                alert("Please enter a valid API Key.");
+            }
+        }
+
+        function updateDocTypes() {
+            const category = document.getElementById("doc-category").value;
+            const typeSelect = document.getElementById("doc-type");
+            typeSelect.innerHTML = "";
+            
+            for (const [key, value] of Object.entries(docData[category])) {
+                const option = document.createElement("option");
+                option.value = key;
+                option.text = value;
+                typeSelect.appendChild(option);
+            }
+            updatePlaceholder();
+        }
+
+        function updatePlaceholder() {
+            const category = document.getElementById("doc-category").value;
+            const type = document.getElementById("doc-type").value;
+            const detailsArea = document.getElementById("details");
+            
+            if(type === "rti_reply") {
+                detailsArea.placeholder = placeholders["rti_reply"];
+            } else if (placeholders[category]) {
+                detailsArea.placeholder = placeholders[category];
+            } else {
+                detailsArea.placeholder = placeholders["default"];
+            }
+        }
+
+        // ── Gemini API Integration ──
+        async function generateDocument() {
+            const apiKey = localStorage.getItem("geminiApiKey") || document.getElementById("api-key").value.trim();
+            
+            if(!apiKey) {
+                alert("ദയവായി ഇടത് വശത്ത് API Key നൽകുക. (Please enter API Key in the sidebar)");
+                if(document.getElementById("sidebar").classList.contains("collapsed")){
+                    toggleSidebar();
+                }
+                return;
+            }
+
+            const fromAddr = document.getElementById("from-addr").value;
+            const toAddr = document.getElementById("to-addr").value;
+            const details = document.getElementById("details").value;
+            const lang = document.getElementById("doc-lang").value;
+            const docTypeLabel = document.getElementById("doc-type").options[document.getElementById("doc-type").selectedIndex].text;
+
+            if(!details.trim()) {
+                alert("ദയവായി വിഷയവും വിവരങ്ങളും നൽകുക. (Please provide details)");
+                return;
+            }
+
+            // Prompt Construction
+            let systemRole, strictRule;
+            if (lang === "English") {
+                systemRole = "You are an expert AI Assistant specializing in drafting official government and professional documents.";
+                strictRule = `Draft a complete '${docTypeLabel}' in professional English based on the details. Do NOT use markdown symbols like **, ##. Ensure proper line breaks. Output ONLY the final letter.`;
+            } else {
+                systemRole = "നീ Kerala സർക്കാർ/തദ്ദേശ ഓഫീസ് ഫയൽ എഴുത്തിൽ വിദഗ്ദ്ധനായ ഒരു Assistant ആണ്.";
+                strictRule = `നൽകിയിട്ടുള്ള വിവരങ്ങൾ വെച്ച് ഔദ്യോഗിക ഭരണമലയാള ശൈലിയിൽ പൂർണ്ണമായ ഒരു '${docTypeLabel}' തയ്യാറാക്കുക. ഔട്ട്പുട്ടിൽ തയ്യാറാക്കിയ കത്ത്/അപേക്ഷ മാത്രമേ ഉണ്ടാകാവൂ. ** ## തുടങ്ങിയ Markdown ചിഹ്നങ്ങൾ ഉപയോഗിക്കരുത്. ശരിയായ വരി ഇടവേളകൾ (line breaks) ഉപയോഗിക്കുക.`;
+            }
+
+            const prompt = `${systemRole}\n\n${strictRule}\n\nFrom Address:\n${fromAddr}\n\nTo Address:\n${toAddr}\n\nSubject & Details:\n${details}`;
+
+            document.getElementById("loader").style.display = "block";
+            
+            try {
+                // Call Gemini API via fetch (Using gemini-1.5-flash which is widely available)
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }],
+                        generationConfig: { temperature: 0.35 }
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error.message);
+                }
+
+                const resultText = data.candidates[0].content.parts[0].text;
+                
+                // Show output
+                document.getElementById("output-section").style.display = "block";
+                document.getElementById("output-paper").innerText = resultText;
+                
+                // Scroll to output
+                document.getElementById("output-section").scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                alert("Error: " + error.message + "\n\n(Check your API Key or Network Connection)");
+            } finally {
+                document.getElementById("loader").style.display = "none";
+            }
+        }
+
+        // ── Action Buttons ──
+        function copyText() {
+            const text = document.getElementById("output-paper").innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Document copied to clipboard!");
+            });
+        }
+
+        function downloadWord() {
+            const text = document.getElementById("output-paper").innerText;
+            // Create a basic HTML format for MS Word
+            const htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head><meta charset='utf-8'><title>Document</title></head>
+                <body style="font-family: 'Times New Roman', serif; line-height: 1.5;">
+                    ${text.replace(/\n/g, '<br>')}
+                </body>
+                </html>
+            `;
+            const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'Document_' + new Date().getTime() + '.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function resetApp() {
+            document.getElementById("from-addr").value = "";
+            document.getElementById("to-addr").value = "";
+            document.getElementById("details").value = "";
+            document.getElementById("output-section").style.display = "none";
+            document.getElementById("output-paper").innerText = "";
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
 </body>
 </html>
