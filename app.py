@@ -1,5 +1,6 @@
 import streamlit as st
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -83,7 +84,6 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 
 /* Streamlit input overrides */
-[data-testid="stTextInput"] input,
 [data-testid="stTextArea"] textarea,
 [data-testid="stSelectbox"] > div > div {
     border-radius: 6px !important;
@@ -91,7 +91,6 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Sans Malayalam', sans-serif !important;
     font-size: .92rem !important;
 }
-[data-testid="stTextInput"] input:focus,
 [data-testid="stTextArea"] textarea:focus {
     border-color: #7B1C28 !important;
     box-shadow: 0 0 0 2px rgba(123,28,40,.12) !important;
@@ -119,111 +118,6 @@ html, body, [data-testid="stAppViewContainer"] {
     font-size: .88rem !important;
 }
 
-/* AI loading animation */
-.ai-loader {
-    background: white;
-    border-radius: 10px;
-    padding: 36px 28px;
-    text-align: center;
-    box-shadow: 0 2px 12px rgba(0,0,0,.07);
-    border-top: 3px solid #7B1C28;
-    margin-bottom: 20px;
-}
-.ai-loader-title {
-    font-family: 'Noto Serif Malayalam', serif;
-    color: #7B1C28;
-    font-size: 1.1rem;
-    font-weight: 700;
-    margin-bottom: 6px;
-}
-.ai-loader-sub {
-    color: #888;
-    font-size: .82rem;
-    margin-bottom: 24px;
-}
-.typing-dots {
-    display: inline-flex;
-    gap: 8px;
-    margin-bottom: 20px;
-}
-.typing-dots span {
-    width: 10px; height: 10px;
-    background: #7B1C28;
-    border-radius: 50%;
-    display: inline-block;
-    animation: bounce 1.2s infinite ease-in-out;
-}
-.typing-dots span:nth-child(2) { animation-delay: .2s; background: #b04455; }
-.typing-dots span:nth-child(3) { animation-delay: .4s; background: #d4747f; }
-@keyframes bounce {
-    0%, 60%, 100% { transform: translateY(0); opacity:.6; }
-    30% { transform: translateY(-10px); opacity:1; }
-}
-.ai-steps {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    text-align: left;
-    max-width: 340px;
-    margin: 0 auto;
-}
-.ai-step {
-    display: flex; align-items: center; gap: 10px;
-    font-size: .85rem;
-    color: #555;
-    padding: 8px 12px;
-    border-radius: 6px;
-    background: #fdf8f8;
-    border: 1px solid #f0e8e8;
-    transition: all .3s;
-}
-.ai-step.active {
-    color: #7B1C28;
-    background: #fff0f1;
-    border-color: #f0b8be;
-    font-weight: 600;
-}
-.ai-step.done {
-    color: #2e7d32;
-    background: #f0faf0;
-    border-color: #a5d6a7;
-}
-.step-icon { font-size: 1rem; }
-
-/* Output letter */
-.letter-output {
-    background: white;
-    border-radius: 10px;
-    padding: 44px 52px;
-    box-shadow: 0 4px 24px rgba(0,0,0,.1);
-    font-family: 'Noto Serif Malayalam', serif;
-    font-size: 1rem;
-    line-height: 2.1;
-    color: #111;
-    white-space: pre-wrap;
-    position: relative;
-    margin-bottom: 16px;
-    border-top: 4px solid #7B1C28;
-}
-.letter-output::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0; height: 3px;
-    background: linear-gradient(90deg, #7B1C28, #A9812F);
-    border-radius: 0 0 10px 10px;
-}
-
-/* Action bar */
-.action-bar {
-    background: white;
-    border-radius: 8px;
-    padding: 14px 18px;
-    display: flex; gap: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
-    margin-bottom: 16px;
-    flex-wrap: wrap;
-}
-
 /* Secret key badge */
 .secret-badge {
     background: #e8f5e9;
@@ -234,25 +128,6 @@ html, body, [data-testid="stAppViewContainer"] {
     font-size: .83rem;
     display: flex; align-items: center; gap: 6px;
     margin-bottom: 12px;
-}
-
-/* Edit textarea */
-[data-testid="stTextArea"].letter-editor textarea {
-    font-family: 'Noto Serif Malayalam', serif !important;
-    font-size: 1rem !important;
-    line-height: 2.1 !important;
-    border: 2px solid #7B1C28 !important;
-    border-radius: 8px !important;
-    padding: 40px 48px !important;
-}
-
-/* Divider */
-hr { border-color: #e8e0d4 !important; margin: 8px 0 !important; }
-
-/* Error */
-[data-testid="stAlert"] {
-    border-radius: 8px !important;
-    font-family: 'Noto Sans Malayalam', sans-serif !important;
 }
 
 @media print {
@@ -269,12 +144,6 @@ hr { border-color: #e8e0d4 !important; margin: 8px 0 !important; }
 """, unsafe_allow_html=True)
 
 # ── Constants ────────────────────────────────────────────────────────────
-
-APP_TYPES_LIST = [
-    "app_general","app_income","app_nativity","app_residence","app_caste",
-    "app_noc","app_building","app_trade","app_pension","app_land",
-    "app_complaint","app_leave","app_scholarship","app_water","app_road"
-]
 
 DOC_GROUPS = {
     "📨 കത്തുകൾ": {
@@ -342,78 +211,46 @@ FORMAT_GUIDES = {
     "app_road":    "Location/Ward, problem, affected count, estimate/survey, priority",
 }
 
-COMMON_RULES = """
-നിർദ്ദേശങ്ങൾ:
-- ശരിയായ ഭരണമലയാളം ഉപയോഗിക്കുക
-- Rough notes → ഔദ്യോഗിക ഖണ്ഡികകൾ ആക്കുക
-- Output-ൽ letter/application മാത്രം; ** ## -- തുടങ്ങിയ Markdown ഇടരുത്
-- ശരിയായ line breaks ഉപയോഗിക്കുക"""
-
-AI_STEPS = [
-    ("🔍", "ആവശ്യം മനസ്സിലാക്കുന്നു..."),
-    ("📐", "ഔദ്യോഗിക format തിരഞ്ഞെടുക്കുന്നു..."),
-    ("✍️", "ഭരണമലയാളത്തിൽ എഴുതുന്നു..."),
-    ("✅", "തയ്യാറാക്കി!"),
-]
-
 # ── Session State ────────────────────────────────────────────────────────
 for k, v in {
     'output': '', 'edit_mode': False,
-    'office_name': '', 'office_addr': '',
-    'generating': False,
-    'doc_label': '',
+    'generating': False, 'doc_label': '',
     'docx_cache': None,
 }.items():
     if k not in st.session_state:
         st.session_state[k] = v
 
-# ── API Key: secrets → fallback input ───────────────────────────────────
+# ── API Key: secrets ─────────────────────────────────────────────────────
 secret_key = st.secrets.get("GEMINI_API_KEY", "")
 
 # ── Functions ────────────────────────────────────────────────────────────
-def build_prompt(d):
-    is_app = d['doc_type'] in APP_TYPES_LIST
-    app_block = ""
-    if is_app:
-        app_block = f"""
-അപേക്ഷകൻ:
-  പേര്    : {d.get('app_name') or '—'}
-  വയസ്സ്  : {d.get('app_age') or '—'}
-  വിലാസം : {d.get('app_addr') or '—'}
-  ഫോൺ    : {d.get('app_phone') or '—'}
-  ID      : {d.get('app_id') or '—'}"""
+def build_prompt(doc_type_key, user_text):
+    doc_label = ALL_TYPES[doc_type_key]
+    format_guide = FORMAT_GUIDES[doc_type_key]
+    
+    return f"""നീ Kerala സർക്കാർ/തദ്ദേശ ഓഫീസ് ഫയൽ എഴുത്തിൽ വിദഗ്ദ്ധനായ ഒരു Assistant ആണ്.
+താഴെ നൽകിയിരിക്കുന്ന വിവരങ്ങൾ ഉപയോഗിച്ച് ഔദ്യോഗിക ഭരണമലയാള ശൈലിയിൽ ഒരു '{doc_label}' തയ്യാറാക്കുക.
 
-    ctx = (
-        "Kerala government office-ൽ ഒരു പൗരൻ നൽകുന്ന official application തയ്യാറാക്കുക."
-        if is_app else
-        f"Kerala സർക്കാർ/തദ്ദേശ ഓഫീസ് ഫയൽ എഴുത്തിൽ expert ആണ്. ഒരു {ALL_TYPES[d['doc_type']]} തയ്യാറാക്കുക."
-    )
-    return f"""{ctx}
+Format നിർദ്ദേശം:
+{format_guide}
+- ലളിതവും സ്പഷ്ടവുമായ ഭരണമലയാളം ഉപയോഗിക്കുക.
+- ഔട്ട്പുട്ടിൽ തയ്യാറാക്കിയ കത്ത്/അപേക്ഷ മാത്രമേ ഉണ്ടാകാവൂ. ** ## -- തുടങ്ങിയ Markdown ചിഹ്നങ്ങൾ ഉപയോഗിക്കരുത്.
+- ശരിയായ വരി ഇടവേളകൾ (line breaks) ഉപയോഗിക്കുക.
 
-Format: {FORMAT_GUIDES[d['doc_type']]}
-{COMMON_RULES}
-
-വിവരങ്ങൾ:
-  ഓഫീസ്   : {d.get('office_name') or '—'}
-  വിലാസം  : {d.get('office_addr') or '—'}
-  ഫയൽ നം. : {d.get('file_no') or '—'}
-  തീയതി   : {d.get('date_str') or '—'}
-  ആർക്ക്   : {d.get('to_whom') or '—'}
-  വിഷയം   : {d.get('subject') or '—'}
-  സൂചന    : {d.get('reference') or 'ഇല്ല'}{app_block}
-  Details  :
-{d.get('points') or '—'}
-  ഒപ്പ്    : {d.get('sign_name') or ''} {('(' + d['sign_desig'] + ')') if d.get('sign_desig') else ''}"""
+ഉപയോക്താവ് നൽകിയ വിവരങ്ങൾ (ഇതിൽ നിന്ന് അയക്കുന്ന ആൾ, സ്വീകർത്താവ്, വിഷയം, മറ്റ് കാര്യങ്ങൾ എന്നിവ വേർതിരിച്ചെടുക്കുക):
+{user_text}"""
 
 
 def call_gemini(api_key, model_name, prompt):
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(model_name)
-    resp = model.generate_content(
-        prompt,
-        generation_config=genai.types.GenerationConfig(temperature=0.35)
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
+        model=model_name,
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            temperature=0.35
+        )
     )
-    return resp.text.strip()
+    return response.text.strip()
 
 
 def make_docx(text, label):
@@ -421,7 +258,7 @@ def make_docx(text, label):
     for sec in doc.sections:
         sec.top_margin = Cm(2.5); sec.bottom_margin = Cm(2.5)
         sec.left_margin = Cm(3);  sec.right_margin = Cm(2.5)
-    # label row
+    
     tp = doc.add_paragraph()
     tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     tr = tp.add_run(f"[ {label} ]")
@@ -434,7 +271,9 @@ def make_docx(text, label):
     bot.set(qn('w:val'),'single'); bot.set(qn('w:sz'),'4')
     bot.set(qn('w:space'),'4');   bot.set(qn('w:color'),'7B1C28')
     pBdr.append(bot); pPr.append(pBdr)
+    
     doc.add_paragraph()
+    
     for line in text.split('\n'):
         p = doc.add_paragraph()
         r = p.add_run(line)
@@ -442,6 +281,7 @@ def make_docx(text, label):
         sp = OxmlElement('w:spacing')
         sp.set(qn('w:line'),'360'); sp.set(qn('w:lineRule'),'auto')
         p._p.get_or_add_pPr().append(sp)
+    
     buf = io.BytesIO(); doc.save(buf); buf.seek(0)
     return buf.getvalue()
 
@@ -451,199 +291,76 @@ st.markdown("""
 <div class="app-header">
   <div class="app-header-icon">📋</div>
   <div>
-    <h1>Application / Office Letter Creator</h1>
+    <h1>Single Window AI Creator</h1>
     <p>ഭരണഭാഷ &nbsp;·&nbsp; മാതൃഭാഷ</p>
   </div>
 </div>
 """, unsafe_allow_html=True)
 
-# ── API Key section ───────────────────────────────────────────────────────
 if secret_key:
-    active_key = secret_key
     st.markdown("""
     <div class="secret-badge">
       🔒 <span>API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
     </div>""", unsafe_allow_html=True)
 else:
-    active_key = ""
-    with st.expander("🔑 Gemini API Key നൽകുക", expanded=True):
-        col_k, col_m = st.columns([2, 1])
-        manual_key = col_k.text_input(
-            "API Key",
-            type="password",
-            placeholder="AIza...",
-            label_visibility="collapsed"
-        )
-        model_sel = col_m.selectbox(
-            "Model",
-            ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"],
-            label_visibility="collapsed"
-        )
-        if manual_key:
-            active_key = manual_key
-            st.success("✅ Key ready")
-        else:
-            st.caption(
-                "💡 Permanent ആക്കാൻ: `.streamlit/secrets.toml` ഉണ്ടാക്കി "
-                "`GEMINI_API_KEY = \"AIza...\"` add ചെയ്യുക"
-            )
+    st.error("⚠️ Streamlit secrets.toml-ൽ API Key നൽകിയിട്ടില്ല.")
 
-model_name = st.session_state.get('model_sel', 'gemini-2.5-flash')
-
-# ── Form ─────────────────────────────────────────────────────────────────
+# ── Form (Single Window) ─────────────────────────────────────────────────
 st.markdown('<div class="form-card">', unsafe_allow_html=True)
 
-# 1. Doc type — category then type, full width each
-group_sel = st.selectbox("രേഖയുടെ വിഭാഗം", list(DOC_GROUPS.keys()))
+c1, c2 = st.columns([1, 1])
+group_sel = c1.selectbox("രേഖയുടെ വിഭാഗം", list(DOC_GROUPS.keys()))
 type_map  = DOC_GROUPS[group_sel]
-doc_type  = st.selectbox("രേഖയുടെ തരം", list(type_map.keys()), format_func=lambda x: type_map[x])
-is_app    = doc_type in APP_TYPES_LIST
+doc_type  = c2.selectbox("രേഖയുടെ തരം", list(type_map.keys()), format_func=lambda x: type_map[x])
 
-# 2. From / Office
-st.text_input("From — ഓഫീസ് / Authority പേര്",
-    key="office_name",
-    placeholder="ഉദാ: നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്")
-office_name = st.session_state.office_name
-
-st.text_input("ഓഫീസ് വിലാസം",
-    key="office_addr",
-    placeholder="ഉദാ: നിലമ്പൂർ, മലപ്പുറം - 679329")
-office_addr = st.session_state.office_addr
-
-c1, c2 = st.columns(2)
-file_no  = c1.text_input("ഫയൽ നം. / Ref", placeholder="B2-1234/2026")
-date_val = c2.date_input("തീയതി", value=datetime.date.today())
-
-# 3. To
-if doc_type not in ['note', 'order', 'sanction', 'memo']:
-    to_ph = "സെക്രട്ടറി, നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്" if is_app else "അസി. എൻജിനീയർ, PWD"
-    to_label = "To — അപേക്ഷകൻ (പേര്/വിലാസം)" if doc_type == "rti_reply" else "To — ആർക്ക്"
-    to_whom = st.text_input(to_label, placeholder=to_ph)
-else:
-    to_whom = ""
-
-# 4. Applicant (apps only)
-app_name = app_age = app_addr = app_phone = app_id = ""
-if is_app:
-    app_name  = st.text_input("അപേക്ഷകന്റെ പേര് *", placeholder="ഉദാ: രാജേഷ് കുമാർ")
-    c1, c2    = st.columns(2)
-    app_age   = c1.text_input("വയസ്സ്", placeholder="42")
-    app_phone = c2.text_input("ഫോൺ", placeholder="9876543210")
-    app_addr  = st.text_area("അപേക്ഷകന്റെ വിലാസം", placeholder="'ശ്രീനിലയം', ആനക്കയം P.O., നിലമ്പൂർ - 679329", height=68)
-    app_id    = st.text_input("Voter ID / Aadhaar (ഐച്ഛികം)", placeholder="ABC1234567")
-
-# 5. Subject & Details
-subject   = st.text_input("വിഷയം (Subject) *",
-    placeholder="ഉദാ: വാർഡ് 12-ലെ റോഡ് അറ്റകുറ്റപ്പണി സംബന്ധിച്ച്")
-reference = st.text_input("സൂചന / Reference (ഐച്ഛികം)",
-    placeholder="ഉദാ: ശ്രീ. XXX-ന്റെ കത്ത് dt. 01-06-2026")
-
-pts_label = (
-    "RTI ചോദ്യങ്ങൾ (നമ്പറിട്ട്) *" if doc_type == "rti_reply"
-    else "ആവശ്യം / Details *" if is_app
-    else "പ്രധാന കാര്യങ്ങൾ — rough notes *"
+st.markdown('<div class="form-section-title">📝 വിവരങ്ങൾ നൽകുക</div>', unsafe_allow_html=True)
+user_input = st.text_area(
+    "എല്ലാ വിവരങ്ങളും ഇവിടെ നൽകുക (Single Window)",
+    placeholder="ഉദാ: എന്റെ പേര് രാജേഷ്, വാർഡ് 12 ലെ കുടിവെള്ള കണക്ഷൻ ലഭിക്കാൻ പഞ്ചായത്ത് സെക്രട്ടറിക്ക് ഒരു അപേക്ഷ തയ്യാറാക്കണം. എന്റെ ഫോൺ നമ്പർ: 9876543210...",
+    height=200,
+    label_visibility="collapsed"
 )
-pts_ph = (
-    "1. ചോദ്യം...\n2. ചോദ്യം..." if doc_type == "rti_reply"
-    else "- ആവശ്യത്തിന്റെ കാരണം\n- Survey No., Ward, dates...\n- Attach ചെയ്ത documents" if is_app
-    else "- പ്രശ്നം / ആവശ്യം\n- relevant facts\n- ആഗ്രഹിക്കുന്ന നടപടി"
+
+# Model Selection - 3.5 മുതലുള്ളവ
+model_name = st.selectbox(
+    "AI Model",
+    ["gemini-3.5-flash", "gemini-3.5-pro", "gemini-4.0-flash"],
+    index=0
 )
-points = st.text_area(pts_label, placeholder=pts_ph, height=140)
 
-# 6. Sign
-c1, c2 = st.columns(2)
-sign_name  = c1.text_input(
-    "അപേക്ഷകന്റെ പേര് (ഒപ്പ്)" if is_app else "ഒപ്പ് — പേര്",
-    placeholder="കെ. രാജൻ")
-sign_desig = c2.text_input(
-    "തൊഴിൽ (ഐച്ഛികം)" if is_app else "പദവി",
-    placeholder="കർഷകൻ" if is_app else "സെക്രട്ടറി")
-
-st.markdown('</div>', unsafe_allow_html=True)  # /form-card
-
-# Model select (shown only when no secret key)
-if secret_key:
-    model_name = st.selectbox(
-        "Model",
-        ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"],
-        label_visibility="collapsed"
-    )
+st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Generate Button ───────────────────────────────────────────────────────
-btn_text = "⚡ അപേക്ഷ തയ്യാറാക്കുക" if is_app else "⚡ കത്ത് / രേഖ തയ്യാറാക്കുക"
-gen_btn  = st.button(btn_text, type="primary", use_container_width=True)
+gen_btn = st.button("⚡ രേഖ തയ്യാറാക്കുക", type="primary", use_container_width=True)
 
 if gen_btn:
-    # Validation
-    err = None
-    if not active_key:
-        err = "⚠️ API Key നൽകുക (മുകളിൽ)"
-    elif not subject or not points:
-        err = "⚠️ വിഷയവും Details-ഉം നിർബന്ധം"
-    elif is_app and not app_name:
-        err = "⚠️ അപേക്ഷകന്റെ പേര് നൽകുക"
-    if err:
-        st.error(err)
+    if not secret_key:
+        st.error("⚠️ API Key ലഭ്യമല്ല.")
+    elif not user_input.strip():
+        st.error("⚠️ ദയവായി വിവരങ്ങൾ ടെക്സ്റ്റ് ബോക്സിൽ നൽകുക.")
     else:
-        data = dict(
-            doc_type=doc_type, office_name=office_name, office_addr=office_addr,
-            file_no=file_no, date_str=date_val.strftime('%d/%m/%Y'),
-            to_whom=to_whom, subject=subject, reference=reference, points=points,
-            sign_name=sign_name, sign_desig=sign_desig,
-            app_name=app_name, app_age=app_age, app_addr=app_addr,
-            app_phone=app_phone, app_id=app_id,
-        )
-
-        # ── AI Loading Animation ──────────────────────────────────────────
-        loader_ph = st.empty()
-
-        def show_loader(step_idx):
-            steps_html = ""
-            for i, (icon, txt) in enumerate(AI_STEPS):
-                if i < step_idx:
-                    cls = "done"; ico = "✅"
-                elif i == step_idx:
-                    cls = "active"; ico = icon
-                else:
-                    cls = ""; ico = icon
-                steps_html += f'<div class="ai-step {cls}"><span class="step-icon">{ico}</span>{txt}</div>'
-            loader_ph.markdown(f"""
-<div class="ai-loader">
-  <div class="ai-loader-title">AI തയ്യാറാക്കുന്നു...</div>
-  <div class="ai-loader-sub">{ALL_TYPES.get(doc_type, '')} · ഭരണമലയാളം</div>
-  <div class="typing-dots"><span></span><span></span><span></span></div>
-  <div class="ai-steps">{steps_html}</div>
-</div>
-""", unsafe_allow_html=True)
-
-        try:
-            show_loader(0); time.sleep(0.6)
-            show_loader(1); time.sleep(0.5)
-            prompt = build_prompt(data)
-            show_loader(2)
-            result = call_gemini(active_key, model_name, prompt)
-            show_loader(3); time.sleep(0.4)
-            loader_ph.empty()
-            st.session_state.output    = result
-            st.session_state.edit_mode = False
-            st.session_state.doc_label = ALL_TYPES.get(doc_type, '')
-            st.session_state.docx_cache = make_docx(result, ALL_TYPES.get(doc_type, ''))
-            st.rerun()
-        except Exception as e:
-            loader_ph.empty()
-            st.error(f"❌ Error: {e}")
+        with st.spinner("AI രേഖ തയ്യാറാക്കുന്നു..."):
+            try:
+                prompt = build_prompt(doc_type, user_input)
+                result = call_gemini(secret_key, model_name, prompt)
+                
+                st.session_state.output = result
+                st.session_state.edit_mode = False
+                st.session_state.doc_label = ALL_TYPES.get(doc_type, '')
+                st.session_state.docx_cache = make_docx(result, ALL_TYPES.get(doc_type, ''))
+                st.rerun()
+            except Exception as e:
+                st.error(f"❌ Error: {e}")
 
 # ── Output ────────────────────────────────────────────────────────────────
 if st.session_state.output:
     doc_label = st.session_state.doc_label or ALL_TYPES.get(doc_type, "")
 
-    # Rebuild docx if edit mode changed the text
     if st.session_state.edit_mode:
         _docx_bytes = make_docx(st.session_state.output, doc_label)
     else:
         _docx_bytes = st.session_state.docx_cache or make_docx(st.session_state.output, doc_label)
 
-    # Action bar
     c1, c2, c3, c4 = st.columns(4)
     if c1.button("✏️ Edit" if not st.session_state.edit_mode else "👁️ Preview", use_container_width=True):
         st.session_state.edit_mode = not st.session_state.edit_mode
@@ -663,18 +380,16 @@ if st.session_state.output:
         st.session_state.edit_mode = False
         st.rerun()
 
-    # Edit mode
     if st.session_state.edit_mode:
         st.caption("✏️ നേരിട്ട് edit ചെയ്യാം")
         edited = st.text_area(
             "edit",
             value=st.session_state.output,
-            height=600,
+            height=500,
             label_visibility="collapsed"
         )
         st.session_state.output = edited
     else:
-        # Print trigger
         print_js = ""
         if st.session_state.get('do_print'):
             print_js = "<script>window.print();</script>"
@@ -710,11 +425,10 @@ body{{background:#f0ebe0;padding:12px;font-size:14px}}
 }}
 </style></head>
 <body><div class="sheet">{safe}</div>{print_js}</body></html>
-""", height=680, scrolling=True)
+""", height=650, scrolling=True)
 
         wc = len(st.session_state.output.split())
         st.caption(f"📊 {wc} words · {len(st.session_state.output)} chars")
 
-# ── Footer ────────────────────────────────────────────────────────────────
 st.markdown("---")
-st.caption("🔒 API Key session-ൽ മാത്രം · Kerala Govt Document Tool")
+st.caption("🔒 API Key session-ൽ മാത്രം · Single Window Document Creator")
