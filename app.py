@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── Custom CSS with Fixed Text Visibility in Input Boxes ─────────────────
+# ── Custom CSS with "For Aiswarya" Golden Tag in Header ───────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -43,8 +43,14 @@ html, body, [data-testid="stAppViewContainer"] {
     margin-bottom: 28px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    justify-content: space-between;
+    position: relative;
     box-shadow: 0 4px 20px rgba(26,77,46,.25);
+}
+.app-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 .app-header-icon {
     font-size: 2rem;
@@ -59,7 +65,21 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Serif Malayalam', serif;
     font-size: 1.3rem; font-weight: 700; line-height: 1.4;
 }
-.app-header p { margin: 4px 0 0; color: rgba(255,255,255,.85); font-size: .82rem; }
+.app-header p { 
+    margin: 4px 0 0; 
+    color: rgba(255,255,255,.85); 
+    font-size: .82rem; 
+}
+.app-header-tag {
+    position: absolute;
+    bottom: 8px;
+    right: 18px;
+    color: #FFD700;
+    font-size: 0.75rem;
+    font-style: italic;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
 
 /* Card Design */
 .form-card {
@@ -279,14 +299,17 @@ def make_docx(text, label):
     buf = io.BytesIO(); doc.save(buf); buf.seek(0)
     return buf.getvalue()
 
-# ── Main UI Header ───────────────────────────────────────────────────────
+# ── Main UI Header with "For Aiswarya" Tag ──────────────────────────────
 st.markdown("""
 <div class="app-header">
-  <div class="app-header-icon">📋</div>
-  <div>
-    <h1>Smart Document Writing Tool</h1>
-    <p>അപേക്ഷ, കത്തുകൾ, ഉത്തരവുകൾ &nbsp;·&nbsp; AI Powered</p>
+  <div class="app-header-left">
+    <div class="app-header-icon">📋</div>
+    <div>
+      <h1>Smart Document Writing Tool</h1>
+      <p>അപേക്ഷ, കത്തുകൾ, ഉത്തരവുകൾ &nbsp;·&nbsp; AI Powered</p>
+    </div>
   </div>
+  <div class="app-header-tag">For Aiswarya</div>
 </div>
 """, unsafe_allow_html=True)
 
