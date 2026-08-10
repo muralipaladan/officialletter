@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── Custom CSS for HTML-like Styling in Streamlit ────────────────────────
+# ── Custom CSS ───────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -131,29 +131,28 @@ html, body, [data-testid="stAppViewContainer"] {
 
 # ── Document Types Dictionary ────────────────────────────────────────────
 DOC_GROUPS = {
-    "📝 അപേക്ഷകൾ (Applications)": {
+    "📝 അപേക്ഷകൾ (Applications - Public to Office)": {
         "app_general": "പൊതു അപേക്ഷ (General Application)",
         "app_income": "വരുമാന Certificate അപേക്ഷ",
         "app_nativity": "ജനന/നാട്ടുകാർ Certificate",
         "app_residence": "താമസ Certificate",
         "app_caste": "ജാതി Certificate",
-        "app_noc": "NOC അപേക്ഷ",
         "app_building": "കെട്ടിട അനുമതി അപേക്ഷ",
         "app_pension": "പെൻഷൻ/ആനുകൂല്യം",
         "app_leave": "അവധി അപേക്ഷ (Leave Letter)",
         "app_complaint": "പരാതി (Complaint)"
     },
-    "📨 ഔദ്യോഗിക കത്തുകൾ (Official Letters)": {
-        "letter": "ഔദ്യോഗിക കത്ത് (Official Letter)",
+    "📨 ഔദ്യോഗിക കത്തുകൾ (Official Letters - Office/Public)": {
+        "letter": "ഔദ്യോഗിക കത്ത് (Office to Office / Public)",
         "do_letter": "അർദ്ധ-ഔദ്യോഗിക കത്ത് (D.O. Letter)",
         "forwarding": "അയക്കൽ കത്ത് (Forwarding Letter)",
         "reminder": "ഓർമ്മപ്പെടുത്തൽ (Reminder Letter)"
     },
-    "📜 ഉത്തരവുകൾ & അറിയിപ്പുകൾ (Orders & Notices)": {
+    "📜 ഉത്തരവുകൾ & അറിയിപ്പുകൾ (Orders & RTI)": {
         "order": "ഉത്തരവ് (Government Order)",
         "circular": "സർക്കുലർ (Circular)",
         "public_notice": "പൊതു അറിയിപ്പ് (Public Notice)",
-        "rti_reply": "വിവരാവകാശ രേഖ / മറുപടി (RTI)"
+        "rti_reply": "വിവരാവകാശ രേഖ / അപേക്ഷ (RTI)"
     }
 }
 
@@ -194,20 +193,10 @@ with st.sidebar:
             <li>"Create API Key" ക്ലിക്ക് ചെയ്ത് കോപ്പി ചെയ്യുക.</li>
         </ol>
     </div>
-    
-    <div class="sidebar-info">
-        <h3 style="margin-bottom: 8px; color: #fff; font-size: 0.95rem;">📄 സേവനങ്ങൾ</h3>
-        <ul style="padding-left: 15px; margin-bottom: 0;">
-            <li>സർക്കാർ അപേക്ഷകൾ (Applications)</li>
-            <li>ഔദ്യോഗിക കത്തുകൾ (Official Letters)</li>
-            <li>ഉത്തരവുകൾ & സർക്കുലറുകൾ (Orders)</li>
-            <li>വിവരാവകാശ രേഖകൾ (RTI)</li>
-        </ul>
-    </div>
     """, unsafe_allow_html=True)
 
 # ── Master Prompt Builder ────────────────────────────────────────────────
-def build_master_prompt(group_sel, doc_type_key, preshitan, sweekarthavu, details, language):
+def build_master_prompt(group_sel, doc_type_key, sender_info, recipient_info, details, language):
     doc_label = ALL_TYPES[doc_type_key]
     
     if language == "English":
@@ -215,26 +204,21 @@ def build_master_prompt(group_sel, doc_type_key, preshitan, sweekarthavu, detail
         system_role = "You are an expert AI Assistant specialized in drafting official government documents, applications, and letters."
     else:
         lang_instruction = "ഔദ്യോഗിക ഭരണമലയാള ശൈലിയിൽ (Official Malayalam)"
-        system_role = "നീ കേരള സർക്കാരിന്റെ ഔദ്യോഗിക ഫയലുകൾ, അപേക്ഷകൾ, വിവരാവകാശ രേഖകൾ (RTI) എന്നിവ തയ്യാറാക്കുന്നതിൽ അഗാധമായ അറിവുള്ള ഒരു 'Senior Section Officer' ആണ്."
+        system_role = "നീ കേരള സർക്കാരിന്റെ ഔദ്യോഗിക ഫയലുകൾ, അപേക്ഷകൾ, കത്തുകൾ എന്നിവ തയ്യാറാക്കുന്നതിൽ അഗാധമായ അറിവുള്ള ഒരു 'Senior Section Officer' ആണ്."
 
     return f"""{system_role}
-നൽകിയിട്ടുള്ള വിവരങ്ങൾ ഉപയോഗിച്ച് ഏറ്റവും മികച്ച രീതിയിൽ പൂർണ്ണമായ ഒരു '{doc_label}' ({group_sel}) തയ്യാറാക്കുക.
+തിരഞ്ഞെടുത്ത വിഭാഗം: {group_sel}
+രേഖയുടെ തരം: '{doc_label}'
 
-കർശനമായ നിയമങ്ങൾ:
-1. ഭാഷ: പൂർണ്ണമായും {lang_instruction} ആയിരിക്കണം.
-2. ഘടന (Structure):
-   - പ്രേഷിതൻ (From/Sender details) മുകളിലും, സ്വീകർത്താവ് (To/Recipient details) അതിനു താഴെയും കൃത്യമായി വരണം.
-   - സംബോധന (Salutation): 'സർ,' അല്ലെങ്കിൽ 'മാന്യരേ,' എന്ന് നൽകുക.
-   - വിഷയം (Subject): കത്തിന്റെ ഉള്ളടക്കം ഒറ്റ വരിയിൽ വ്യക്തമായി എഴുതുക.
-   - ഉള്ളടക്കം (Body): കാര്യം വളച്ചുകെട്ടില്ലാതെ ഔദ്യോഗിക പദങ്ങൾ ഉപയോഗിച്ച് പാരഗ്രാഫുകളായി തയ്യാറാക്കുക.
-   - RTI ആണെങ്കിൽ: 2005-ലെ വിവരാവകാശ നിയമപ്രകാരമുള്ള ഫോർമാറ്റും 10 രൂപയുടെ കോർട്ട് ഫീ സ്റ്റാമ്പ് പതിച്ച വിവരവും ചോദ്യങ്ങൾ നമ്പറിട്ടും നൽകുക.
-3. ഉപസംഹാരം: 'വിശ്വസ്തതയോടെ' എന്ന് നൽകി ഒപ്പിടാനുള്ള സ്ഥലം നൽകുക.
-4. ഔട്ട്പുട്ടിൽ തയ്യാറാക്കിയ പൂർണ്ണമായ രേഖ മാത്രമേ ഉണ്ടാകാവൂ. യാതൊരുവിധ Markdown ചിഹ്നങ്ങളോ (** ##) അനാവശ്യ വിവരണങ്ങളോ പാടില്ല.
+നൽകിയിട്ടുള്ള വിവരങ്ങൾ പരിശോധിക്കുക:
+1. കത്ത് അയക്കുന്ന ആളുടെ/സ്ഥാപനത്തിന്റെ വിവരങ്ങൾ (Sender Info): {sender_info}
+2. കത്ത് ലഭിക്കേണ്ട ആളുടെ/സ്ഥാപനത്തിന്റെ വിവരങ്ങൾ (Recipient Info): {recipient_info}
+3. വിഷയവും വിവരങ്ങളും (Subject & Details): {details}
 
-വിവരങ്ങൾ:
-- പ്രേഷിതൻ (Preshitan): {preshitan}
-- സ്വീകർത്താവ് (Sweekarthavu): {sweekarthavu}
-- വിഷയം & വിവരങ്ങൾ (Details): {details}
+പ്രധാന നിർദ്ദേശങ്ങൾ:
+- കത്ത/അപേക്ഷ ഏതുതരം (Public to Office, Office to Office, Office to Public) ആണെന്ന് ഈ വിവരങ്ങളിൽ നിന്ന് മനസ്സിലാക്കി അതിനനുയോജ്യമായ ഔദ്യോഗിക ഫോർമാറ്റ് സ്വീകരിക്കുക.
+- ഭാഷ: പൂർണ്ണമായും {lang_instruction} ആയിരിക്കണം.
+- ഔട്ട്പുട്ടിൽ തയ്യാറാക്കിയ പൂർണ്ണമായ രേഖ മാത്രമേ ഉണ്ടാകാവൂ. യാതൊരുവിധ Markdown ചിഹ്നങ്ങളോ (** ##) അനാവശ്യ വിവരണങ്ങളും പാടില്ല.
 """
 
 def call_gemini(api_key, model_name, prompt):
@@ -284,7 +268,7 @@ st.markdown("""
   <div class="app-header-icon">📋</div>
   <div>
     <h1>Smart Document Writing Tool</h1>
-    <p>അപേക്ഷ, RTI, ഔദ്യോഗിക കത്തുകൾ &nbsp;·&nbsp; AI Powered</p>
+    <p>അപേക്ഷ, കത്തുകൾ, ഉത്തരവുകൾ &nbsp;·&nbsp; AI Powered</p>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -306,13 +290,21 @@ st.markdown('<div class="form-section-title" style="margin-top: 20px;">📝 വ�
 
 c1, c2 = st.columns(2)
 with c1:
-    preshitan = st.text_area("പ്രേഷിതൻ (Preshitan)", placeholder="പേര്\nവിലാസം\nഫോൺ നമ്പർ", height=110)
+    sender_info = st.text_area(
+        "കത്ത് അയക്കുന്ന ആളുടെ/സ്ഥാപനത്തിന്റെ വിവരങ്ങൾ (Sender Info)", 
+        placeholder="ഉദാ: പൊതുജനം അല്ലെങ്കിൽ ഒരു ഓഫീസിന്റെ പേര്\nപേര് / ഓഫീസിന്റെ പേര്\nവിലാസം\nഫോൺ നമ്പർ", 
+        height=120
+    )
 with c2:
-    sweekarthavu = st.text_area("സ്വീകർത്താവ് (Sweekarthavu)", placeholder="പദവി\nഓഫീസിന്റെ പേര്\nസ്ഥലം", height=110)
+    recipient_info = st.text_area(
+        "കത്ത് ലഭിക്കേണ്ട ആളുടെ/സ്ഥാപനത്തിന്റെ വിവരങ്ങൾ (Recipient Info)", 
+        placeholder="ഉദാ: പഞ്ചായത്ത് സെക്രട്ടറി / മറ്റൊരു ഓഫീസർ\nപദവി\nഓഫീസിന്റെ പേര്\nസ്ഥലം", 
+        height=120
+    )
 
 details = st.text_area(
     "വിഷയവും മറ്റ് വിവരങ്ങളും (Subject & Details)",
-    placeholder="ഉദാ: കുടിവെള്ള കണക്ഷൻ ലഭിക്കുന്നത് സംബന്ധിച്ച്... അല്ലെങ്കിൽ RTI ചോദ്യങ്ങൾ ഇവിടെ നൽകുക...",
+    placeholder="ഉദാ: കുടിവെള്ള കണക്ഷൻ ലഭിക്കുന്നത് സംബന്ധിച്ച്... അല്ലെങ്കിൽ ഒരു ഓഫീസിൽ നിന്ന് മറ്റേ ഓഫീസിലേക്ക് അയക്കേണ്ട കത്തിന്റെ വിവരങ്ങൾ...",
     height=150
 )
 
@@ -332,9 +324,9 @@ if st.button("⚡ മികച്ച ഔദ്യോഗിക രേഖ തയ�
     elif not details.strip():
         st.error("⚠️ ദയവായി വിഷയവും വിവരങ്ങളും നൽകുക.")
     else:
-        with st.spinner("AI ഭരണഭാഷയിൽ രേഖ തയ്യാറാക്കുന്നു... ശരീരവും ഘടനയും പരിശോധിക്കുന്നു..."):
+        with st.spinner("AI ഭരണഭാഷയിൽ രേഖ തയ്യാറാക്കുന്നു..."):
             try:
-                prompt = build_master_prompt(group_sel, doc_type, preshitan, sweekarthavu, details, doc_language)
+                prompt = build_master_prompt(group_sel, doc_type, sender_info, recipient_info, details, doc_language)
                 result = call_gemini(active_api_key, model_name, prompt)
                 
                 final_label = type_map[doc_type] if doc_language == "Malayalam" else "Official Document"
@@ -351,7 +343,7 @@ if st.button("⚡ മികച്ച ഔദ്യോഗിക രേഖ തയ�
                 else:
                     st.error(f"❌ Error: {error_msg}")
 
-# ── Output Section ────────────────────────────────────────────────رفت
+# ── Output Section ────────────────────────────────────────────────────────
 if st.session_state.output:
     doc_label = st.session_state.doc_label or "Official Document"
 
