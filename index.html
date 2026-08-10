@@ -338,7 +338,7 @@
             <div class="app-header-icon">📋</div>
             <div>
                 <h1>Smart Document Creator</h1>
-                <p>ഭരണഭാഷ &nbsp;·&nbsp; AI Powered Web App</p>
+                <p>പ്രേഷിതൻ & സ്വീകർത്താവ് &nbsp;·&nbsp; AI Powered Web App</p>
             </div>
         </div>
 
@@ -371,18 +371,17 @@
                 </div>
                 <div class="form-group">
                     <label>AI Model (ടൈപ്പ് ചെയ്യാം / Type Model Name)</label>
-                    <!-- Fully customizable text input for Model Name -->
                     <input type="text" id="ai-model" value="gemini-2.5-flash" placeholder="ഉദാ: gemini-2.5-flash, gemini-3.6-flash">
                 </div>
             </div>
 
             <div class="form-row">
                 <div class="form-group">
-                    <label>അയക്കുന്ന ആൾ (From Address)</label>
+                    <label>പ്രേഷിതൻ (Preshitan)</label>
                     <textarea id="from-addr" rows="3" placeholder="പേര്&#10;വിലാസം&#10;ഫോൺ നമ്പർ"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>സ്വീകർത്താവ് (To Address)</label>
+                    <label>സ്വീകർത്താവ് (Sweekarthavu)</label>
                     <textarea id="to-addr" rows="3" placeholder="പദവി&#10;ഓഫീസിന്റെ പേര്&#10;സ്ഥലം"></textarea>
                 </div>
             </div>
@@ -413,7 +412,6 @@
     </div>
 
     <script>
-        // ── Data ──
         const docData = {
             "applications": {
                 "app_general": "പൊതു അപേക്ഷ (General Application)",
@@ -444,12 +442,11 @@
 
         const placeholders = {
             "applications": "ഉദാ: \nവിഷയം: കുടിവെള്ള കണക്ഷൻ ലഭിക്കുന്നത് സംബന്ധിച്ച്.\n\nവിവരങ്ങൾ: എന്റെ വീടിന്റെ പണി പൂർത്തിയായി. പുതിയ കുടിവെള്ള കണക്ഷൻ ലഭിക്കാൻ ആവശ്യമായ രേഖകൾ ഇതോടൊപ്പം സമർപ്പിക്കുന്നു. എത്രയും വേഗം നടപടി സ്വീകരിക്കണം...",
-            "letters": "ഉദാ: \nവിഷയം: പുതിയ കമ്പ്യൂട്ടറുകൾ അനുവദിക്കുന്നത് സംബന്ധിച്ച്.\n\nവിവരങ്ങൾ: ഓഫീസിലെ പഴയ 2 കമ്പ്യൂട്ടറുകൾ കേടായതിനാൽ ഫയൽ നീക്കം തടസ്സപ്പെടുന്നുണ്ട്. അതിനാൽ പകരം 2 പുതിയ കമ്പ്യൂട്ടറുകൾ അനുവദിക്കണമെന്ന് അഭ്യർത്ഥിക്കുന്നു...",
+            "letters": "ഉദാ: \nവിഷയം: പുതിയ കമ്പ്യൂട്ടറുകൾ അനുവദിക്കുന്നത് സംബന്ധിച്ച്.\n\nവിവരങ്ങൾ: ഓഫീസിലെ പഴയ 2 കമ്പ്യൂട്ടറുകൾ കേടായതിനാൽ ഫയൽ നീക്കം തടസ്സപ്പെടുന്നുണ്ട്. അതിനാൽ പകരം 2 പുതിയ കമ്പ്യൂട്ടറുകൾ അനുവദണമെന്ന് അഭ്യർത്ഥിക്കുന്നു...",
             "rti_reply": "ഉദാ: \n1. പഞ്ചായത്തിൽ കഴിഞ്ഞ സാമ്പത്തിക വർഷം റോഡ് പണിക്കായി എത്ര രൂപ ഫണ്ട് അനുവദിച്ചു?\n2. ഇതിൽ എത്ര രൂപ ചെലവാക്കി?\n3. ബാക്കി തുകയുടെ വിശദാംശങ്ങൾ നൽകുക.",
             "default": "കത്തിലോ അപേക്ഷയിലോ ഉൾപ്പെടുത്തേണ്ട വിഷയവും മറ്റു പ്രധാന വിവരങ്ങളും ഇവിടെ ടൈപ്പ് ചെയ്യുക..."
         };
 
-        // ── Initialization ──
         window.onload = function() {
             const savedKey = localStorage.getItem("geminiApiKey");
             if(savedKey) {
@@ -459,12 +456,10 @@
             updateDocTypes();
         };
 
-        // ── UI Interactions ──
         function toggleSidebar() {
             const sidebar = document.getElementById("sidebar");
             const main = document.getElementById("main-content");
             sidebar.classList.toggle("collapsed");
-            
             if(window.innerWidth > 768) {
                 main.classList.toggle("expanded");
             }
@@ -485,7 +480,6 @@
             const category = document.getElementById("doc-category").value;
             const typeSelect = document.getElementById("doc-type");
             typeSelect.innerHTML = "";
-            
             for (const [key, value] of Object.entries(docData[category])) {
                 const option = document.createElement("option");
                 option.value = key;
@@ -499,7 +493,6 @@
             const category = document.getElementById("doc-category").value;
             const type = document.getElementById("doc-type").value;
             const detailsArea = document.getElementById("details");
-            
             if(type === "rti_reply") {
                 detailsArea.placeholder = placeholders["rti_reply"];
             } else if (placeholders[category]) {
@@ -509,12 +502,10 @@
             }
         }
 
-        // ── Gemini API Integration ──
         async function generateDocument() {
             const apiKey = localStorage.getItem("geminiApiKey") || document.getElementById("api-key").value.trim();
-            
             if(!apiKey) {
-                alert("ദയവായി ഇടത് വശത്ത് API Key നൽകുക. (Please enter API Key in the sidebar)");
+                alert("ദയവായി ഇടത് വശത്ത് API Key നൽകുക.");
                 if(document.getElementById("sidebar").classList.contains("collapsed")){
                     toggleSidebar();
                 }
@@ -527,55 +518,43 @@
             const lang = document.getElementById("doc-lang").value;
             const docTypeLabel = document.getElementById("doc-type").options[document.getElementById("doc-type").selectedIndex].text;
             
-            // Get custom model input typed by the user (Defaults to gemini-2.5-flash)
             let selectedModel = document.getElementById("ai-model").value.trim();
-            if(!selectedModel) {
-                selectedModel = "gemini-2.5-flash";
-            }
+            if(!selectedModel) { selectedModel = "gemini-2.5-flash"; }
 
             if(!details.trim()) {
-                alert("ദയവായി വിഷയവും വിവരങ്ങളും നൽകുക. (Please provide details)");
+                alert("ദയവായി വിഷയവും വിവരങ്ങളും നൽകുക.");
                 return;
             }
 
-            // Prompt Construction
             let systemRole, strictRule;
             if (lang === "English") {
                 systemRole = "You are an expert AI Assistant specializing in drafting official government and professional documents.";
                 strictRule = `Draft a complete '${docTypeLabel}' in professional English based on the details. Do NOT use markdown symbols like **, ##. Ensure proper line breaks. Output ONLY the final letter.`;
             } else {
-                systemRole = "നീ Kerala സർക്കാർ/തദ്ദേശ ഓഫീസ് ഫയൽ എഴുത്തിൽ വിദഗ്ദ്ധനായ ഒരു Assistant ആണ്.";
+                systemRole = "നീ കേരള സർക്കാരിന്റെ ഔദ്യോഗിക ഫയലുകൾ, അപേക്ഷകൾ, വിവരാവകാശ രേഖകൾ (RTI) എന്നിവ തയ്യാറാക്കുന്നതിൽ അഗാധമായ അറിവുള്ള ഒരു 'Senior Section Officer' ആണ്.";
                 strictRule = `നൽകിയിട്ടുള്ള വിവരങ്ങൾ വെച്ച് ഔദ്യോഗിക ഭരണമലയാള ശൈലിയിൽ പൂർണ്ണമായ ഒരു '${docTypeLabel}' തയ്യാറാക്കുക. ഔട്ട്പുട്ടിൽ തയ്യാറാക്കിയ കത്ത്/അപേക്ഷ മാത്രമേ ഉണ്ടാകാവൂ. ** ## തുടങ്ങിയ Markdown ചിഹ്നങ്ങൾ ഉപയോഗിക്കരുത്. ശരിയായ വരി ഇടവേളകൾ (line breaks) ഉപയോഗിക്കുക.`;
             }
 
-            const prompt = `${systemRole}\n\n${strictRule}\n\nFrom Address:\n${fromAddr}\n\nTo Address:\n${toAddr}\n\nSubject & Details:\n${details}`;
+            const prompt = `${systemRole}\n\n${strictRule}\n\nപ്രേഷിതൻ (From):\n${fromAddr}\n\nസ്വീകർത്താവ് (To):\n${toAddr}\n\nSubject & Details:\n${details}`;
 
             document.getElementById("loader").style.display = "block";
             
             try {
-                // Call Gemini API via fetch using the dynamically typed model name
                 const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${apiKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: { temperature: 0.35 }
+                        generationConfig: { temperature: 0.3 }
                     })
                 });
 
                 const data = await response.json();
-                
-                if (data.error) {
-                    throw new Error(data.error.message);
-                }
+                if (data.error) { throw new Error(data.error.message); }
 
                 const resultText = data.candidates[0].content.parts[0].text;
-                
-                // Show output
                 document.getElementById("output-section").style.display = "block";
                 document.getElementById("output-paper").innerText = resultText;
-                
-                // Scroll to output
                 document.getElementById("output-section").scrollIntoView({ behavior: 'smooth' });
 
             } catch (error) {
@@ -585,12 +564,9 @@
             }
         }
 
-        // ── Action Buttons ──
         function copyText() {
             const text = document.getElementById("output-paper").innerText;
-            navigator.clipboard.writeText(text).then(() => {
-                alert("Document copied to clipboard!");
-            });
+            navigator.clipboard.writeText(text).then(() => { alert("Document copied to clipboard!"); });
         }
 
         function downloadWord() {
