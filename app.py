@@ -451,8 +451,8 @@ st.markdown("""
 <div class="app-header">
   <div class="app-header-icon">📋</div>
   <div>
-    <h1>ഔദ്യോഗിക അപേക്ഷ / കത്ത് നിർമ്മാതാവ്</h1>
-    <p>Kerala Govt · ഭരണമലയാളം · AI-powered · seconds-ൽ ready</p>
+    <h1>Application / Office Letter Creator</h1>
+    <p>ഭരണഭാഷ &nbsp;·&nbsp; മാതൃഭാഷ</p>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -490,77 +490,54 @@ else:
 
 model_name = st.session_state.get('model_sel', 'gemini-2.5-flash')
 
-# ── Form Card ─────────────────────────────────────────────────────────────
+# ── Form ─────────────────────────────────────────────────────────────────
 st.markdown('<div class="form-card">', unsafe_allow_html=True)
 
-# Doc Type
-st.markdown('<div class="form-section-title">📋 രേഖയുടെ തരം</div>', unsafe_allow_html=True)
-group_sel = st.selectbox("Category", list(DOC_GROUPS.keys()), label_visibility="collapsed")
+# 1. Doc type — category then type, full width each
+group_sel = st.selectbox("രേഖയുടെ വിഭാഗം", list(DOC_GROUPS.keys()))
 type_map  = DOC_GROUPS[group_sel]
-doc_type  = st.selectbox(
-    "Type", list(type_map.keys()),
-    format_func=lambda x: type_map[x],
-    label_visibility="collapsed"
-)
-is_app = doc_type in APP_TYPES_LIST
-st.markdown("<hr>", unsafe_allow_html=True)
+doc_type  = st.selectbox("രേഖയുടെ തരം", list(type_map.keys()), format_func=lambda x: type_map[x])
+is_app    = doc_type in APP_TYPES_LIST
 
-# Applicant section (apps only)
-app_name = app_age = app_addr = app_phone = app_id = ""
-if is_app:
-    st.markdown('<div class="form-section-title">👤 അപേക്ഷകൻ</div>', unsafe_allow_html=True)
-    c1, c2 = st.columns(2)
-    app_name  = c1.text_input("പേര് *", placeholder="രാജേഷ് കുമാർ")
-    app_age   = c2.text_input("വയസ്സ്", placeholder="42")
-    app_addr  = st.text_area("വിലാസം", placeholder="'ശ്രീനിലയം', ആനക്കയം P.O., നിലമ്പൂർ - 679329", height=70)
-    c3, c4    = st.columns(2)
-    app_phone = c3.text_input("ഫോൺ", placeholder="9876543210")
-    app_id    = c4.text_input("Voter ID / Aadhaar", placeholder="ABC1234567")
-    st.markdown("<hr>", unsafe_allow_html=True)
+# 2. From / Office
+st.text_input("From — ഓഫീസ് / Authority പേര്",
+    key="office_name",
+    placeholder="ഉദാ: നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്")
+office_name = st.session_state.office_name
 
-# From / Office
-st.markdown(
-    f'<div class="form-section-title">🏢 {"Authority / ഓഫീസ്" if is_app else "From — ഓഫീസ്"}</div>',
-    unsafe_allow_html=True
-)
+st.text_input("ഓഫീസ് വിലാസം",
+    key="office_addr",
+    placeholder="ഉദാ: നിലമ്പൂർ, മലപ്പുറം - 679329")
+office_addr = st.session_state.office_addr
+
 c1, c2 = st.columns(2)
-office_name = c1.text_input(
-    "ഓഫീസ് പേര്",
-    value=st.session_state.office_name,
-    placeholder="നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്"
-)
-office_addr = c2.text_input(
-    "വിലാസം",
-    value=st.session_state.office_addr,
-    placeholder="നിലമ്പൂർ, മലപ്പുറം - 679329"
-)
-if office_name: st.session_state.office_name = office_name
-if office_addr: st.session_state.office_addr = office_addr
+file_no  = c1.text_input("ഫയൽ നം. / Ref", placeholder="B2-1234/2026")
+date_val = c2.date_input("തീയതി", value=datetime.date.today())
 
-c3, c4 = st.columns(2)
-file_no  = c3.text_input("ഫയൽ നം. / Ref", placeholder="B2-1234/2026")
-date_val = c4.date_input("തീയതി", value=datetime.date.today())
-st.markdown("<hr>", unsafe_allow_html=True)
-
-# To
+# 3. To
 if doc_type not in ['note', 'order', 'sanction', 'memo']:
-    to_label = {
-        "rti_reply": "To — അപേക്ഷകൻ (പേര്/വിലാസം)",
-    }.get(doc_type, "To — ആർക്ക് / Authority")
-    st.markdown(f'<div class="form-section-title">📬 {to_label}</div>', unsafe_allow_html=True)
-    to_whom = st.text_input(
-        to_label,
-        placeholder="സെക്രട്ടറി, നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്" if is_app else "അസി. എൻജിനീയർ, PWD",
-        label_visibility="collapsed"
-    )
-    st.markdown("<hr>", unsafe_allow_html=True)
+    to_ph = "സെക്രട്ടറി, നിലമ്പൂർ ഗ്രാമ പഞ്ചായത്ത്" if is_app else "അസി. എൻജിനീയർ, PWD"
+    to_label = "To — അപേക്ഷകൻ (പേര്/വിലാസം)" if doc_type == "rti_reply" else "To — ആർക്ക്"
+    to_whom = st.text_input(to_label, placeholder=to_ph)
 else:
     to_whom = ""
 
-# Subject / Details
-st.markdown('<div class="form-section-title">📝 Subject & Details</div>', unsafe_allow_html=True)
-subject   = st.text_input("വിഷയം (Subject) *", placeholder="ഉദാ: വാർഡ് 12-ലെ റോഡ് അറ്റകുറ്റ പ്പണി സംബന്ധിച്ച്")
-reference = st.text_input("സൂചന / Reference (ഐച്ഛികം)", placeholder="ഉദാ: ശ്രീ. XXX-ന്റെ കത്ത് dt. 01-06-2026")
+# 4. Applicant (apps only)
+app_name = app_age = app_addr = app_phone = app_id = ""
+if is_app:
+    app_name  = st.text_input("അപേക്ഷകന്റെ പേര് *", placeholder="ഉദാ: രാജേഷ് കുമാർ")
+    c1, c2    = st.columns(2)
+    app_age   = c1.text_input("വയസ്സ്", placeholder="42")
+    app_phone = c2.text_input("ഫോൺ", placeholder="9876543210")
+    app_addr  = st.text_area("അപേക്ഷകന്റെ വിലാസം", placeholder="'ശ്രീനിലയം', ആനക്കയം P.O., നിലമ്പൂർ - 679329", height=68)
+    app_id    = st.text_input("Voter ID / Aadhaar (ഐച്ഛികം)", placeholder="ABC1234567")
+
+# 5. Subject & Details
+subject   = st.text_input("വിഷയം (Subject) *",
+    placeholder="ഉദാ: വാർഡ് 12-ലെ റോഡ് അറ്റകുറ്റപ്പണി സംബന്ധിച്ച്")
+reference = st.text_input("സൂചന / Reference (ഐച്ഛികം)",
+    placeholder="ഉദാ: ശ്രീ. XXX-ന്റെ കത്ത് dt. 01-06-2026")
+
 pts_label = (
     "RTI ചോദ്യങ്ങൾ (നമ്പറിട്ട്) *" if doc_type == "rti_reply"
     else "ആവശ്യം / Details *" if is_app
@@ -571,18 +548,16 @@ pts_ph = (
     else "- ആവശ്യത്തിന്റെ കാരണം\n- Survey No., Ward, dates...\n- Attach ചെയ്ത documents" if is_app
     else "- പ്രശ്നം / ആവശ്യം\n- relevant facts\n- ആഗ്രഹിക്കുന്ന നടപടി"
 )
-points = st.text_area(pts_label, placeholder=pts_ph, height=130)
-st.markdown("<hr>", unsafe_allow_html=True)
+points = st.text_area(pts_label, placeholder=pts_ph, height=140)
 
-# Sign
-sign_label = "✍️ അപേക്ഷകൻ" if is_app else "✍️ ഒപ്പ്"
-st.markdown(f'<div class="form-section-title">{sign_label}</div>', unsafe_allow_html=True)
+# 6. Sign
 c1, c2 = st.columns(2)
-sign_name  = c1.text_input("പേര്", placeholder="കെ. രാജൻ")
+sign_name  = c1.text_input(
+    "അപേക്ഷകന്റെ പേര് (ഒപ്പ്)" if is_app else "ഒപ്പ് — പേര്",
+    placeholder="കെ. രാജൻ")
 sign_desig = c2.text_input(
-    "പദവി" if not is_app else "തൊഴിൽ (ഐച്ഛികം)",
-    placeholder="സെക്രട്ടറി" if not is_app else "കർഷകൻ"
-)
+    "തൊഴിൽ (ഐച്ഛികം)" if is_app else "പദവി",
+    placeholder="കർഷകൻ" if is_app else "സെക്രട്ടറി")
 
 st.markdown('</div>', unsafe_allow_html=True)  # /form-card
 
