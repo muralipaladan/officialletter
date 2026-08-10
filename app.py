@@ -1,5 +1,6 @@
 import streamlit as st
-from openai import OpenAI
+from google import genai
+from google.genai import types
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -7,16 +8,14 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import io
 import datetime
-import re
 
 st.set_page_config(
-    page_title="ഔദ്യോഗിക അപേക്ഷ (Groq AI)",
+    page_title="ഔദ്യോഗിക അപേക്ഷ",
     page_icon="📋",
     layout="centered",
     initial_sidebar_state="collapsed"
 )
 
-# ── Styles ──────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -36,14 +35,14 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 
 .app-header {
-    background: linear-gradient(135deg, #F55036 0%, #C43B26 100%); /* Groq Orange/Red theme */
+    background: linear-gradient(135deg, #7B1C28 0%, #5C1520 100%);
     border-radius: 10px;
     padding: 22px 28px;
     margin-bottom: 28px;
     display: flex;
     align-items: center;
     gap: 16px;
-    box-shadow: 0 4px 20px rgba(245,80,54,.25);
+    box-shadow: 0 4px 20px rgba(123,28,40,.25);
 }
 .app-header-icon {
     font-size: 2rem;
@@ -58,7 +57,7 @@ html, body, [data-testid="stAppViewContainer"] {
     font-family: 'Noto Serif Malayalam', serif;
     font-size: 1.3rem; font-weight: 700; line-height: 1.4;
 }
-.app-header p { margin: 4px 0 0; color: rgba(255,255,255,.85); font-size: .82rem; }
+.app-header p { margin: 4px 0 0; color: rgba(255,255,255,.75); font-size: .82rem; }
 
 .form-card {
     background: white;
@@ -66,13 +65,13 @@ html, body, [data-testid="stAppViewContainer"] {
     padding: 24px 28px;
     margin-bottom: 20px;
     box-shadow: 0 2px 12px rgba(0,0,0,.07);
-    border-top: 3px solid #F55036;
+    border-top: 3px solid #7B1C28;
 }
 .form-section-title {
     font-family: 'Noto Serif Malayalam', serif;
     font-size: .95rem;
     font-weight: 700;
-    color: #F55036;
+    color: #7B1C28;
     margin-bottom: 14px;
     padding-bottom: 8px;
     border-bottom: 1px solid #f0e8e8;
@@ -88,14 +87,14 @@ html, body, [data-testid="stAppViewContainer"] {
 }
 
 [data-testid="stButton"] > button[kind="primary"] {
-    background: linear-gradient(135deg, #F55036, #C43B26) !important;
+    background: linear-gradient(135deg, #7B1C28, #9E2535) !important;
     border: none !important;
     border-radius: 8px !important;
     font-family: 'Noto Sans Malayalam', sans-serif !important;
     font-size: 1rem !important;
     font-weight: 600 !important;
     height: 52px !important;
-    box-shadow: 0 4px 14px rgba(245,80,54,.3) !important;
+    box-shadow: 0 4px 14px rgba(123,28,40,.3) !important;
 }
 
 .secret-badge {
@@ -116,7 +115,7 @@ html, body, [data-testid="stAppViewContainer"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ── Constants ────────────────────────────────────────────────────────────
+# ── Document Types & Formatting ──────────────────────────────────────────
 
 DOC_GROUPS = {
     "📨 കത്തുകൾ": {
@@ -184,7 +183,7 @@ FORMAT_GUIDES = {
     "app_road":    "Location/Ward, problem, affected count, estimate/survey, priority",
 }
 
-# ── Session State Init ───────────────────────────────────────────────────
+# ── Session State ────────────────────────────────────────────────────────
 for k, v in {
     'output': '', 'edit_mode': False,
     'doc_label': '', 'docx_cache': None,
@@ -192,8 +191,8 @@ for k, v in {
     if k not in st.session_state:
         st.session_state[k] = v
 
-# Secrets-ൽ നിന്ന് Groq API Key എടുക്കുന്നു
-secret_key = st.secrets.get("GROQ_API_KEY", "")
+# Streamlit Secrets-ൽ നിന്ന് Key സ്വയം ലോഡ് ചെയ്യുന്നു
+secret_key = st.secrets.get("GEMINI_API_KEY", "")
 
 # ── Helper Functions ─────────────────────────────────────────────────────
 def build_prompt(doc_type_key, user_text):
@@ -213,26 +212,16 @@ Format നിർദ്ദേശം:
 {user_text}"""
 
 
-def call_groq(api_key, model_name, prompt):
-    # Groq API call using OpenAI Client
-    client = OpenAI(
-        base_url="https://api.groq.com/openai/v1",
-        api_key=api_key,
-    )
-    
-    response = client.chat.completions.create(
+def call_gemini(api_key, model_name, prompt):
+    client = genai.Client(api_key=api_key)
+    response = client.models.generate_content(
         model=model_name,
-        messages=[
-            {"role": "system", "content": "You are an expert official letter writer in Malayalam. Strictly format the output without markdown symbols."},
-            {"role": "user", "content": prompt}
-        ],
-        temperature=0.3
+        contents=prompt,
+        config=types.GenerateContentConfig(
+            temperature=0.35
+        )
     )
-    
-    raw_text = response.choices[0].message.content
-    # DeepSeek R1-ലെ <think>...</think> ഭാഗങ്ങൾ മായ്ച്ചു കളയുന്നു
-    cleaned_text = re.sub(r'<think>.*?</think>', '', raw_text, flags=re.DOTALL)
-    return cleaned_text.strip()
+    return response.text.strip()
 
 
 def make_docx(text, label):
@@ -245,13 +234,13 @@ def make_docx(text, label):
     tp.alignment = WD_ALIGN_PARAGRAPH.CENTER
     tr = tp.add_run(f"[ {label} ]")
     tr.font.size = Pt(8); tr.font.bold = True
-    tr.font.color.rgb = RGBColor(0xF5, 0x50, 0x36) # Groq Orange matching color
+    tr.font.color.rgb = RGBColor(0x7B, 0x1C, 0x28)
     tr.font.name = "Noto Serif Malayalam"
     pPr = tp._p.get_or_add_pPr()
     pBdr = OxmlElement('w:pBdr')
     bot = OxmlElement('w:bottom')
     bot.set(qn('w:val'),'single'); bot.set(qn('w:sz'),'4')
-    bot.set(qn('w:space'),'4');   bot.set(qn('w:color'),'F55036')
+    bot.set(qn('w:space'),'4');   bot.set(qn('w:color'),'7B1C28')
     pBdr.append(bot); pPr.append(pBdr)
     
     doc.add_paragraph()
@@ -271,10 +260,10 @@ def make_docx(text, label):
 # ── Header ───────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="app-header">
-  <div class="app-header-icon">🚀</div>
+  <div class="app-header-icon">📋</div>
   <div>
     <h1>Single Window AI Creator</h1>
-    <p>Powered by Groq (Llama 3.3 & DeepSeek)</p>
+    <p>Gemini AI Powered · ഭരണഭാഷ &nbsp;·&nbsp; മാതൃഭാഷ</p>
   </div>
 </div>
 """, unsafe_allow_html=True)
@@ -282,10 +271,10 @@ st.markdown("""
 if secret_key:
     st.markdown("""
     <div class="secret-badge">
-      🔒 <span>Groq API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
+      🔒 <span>API Key: <b>secrets.toml</b>-ൽ നിന്ന് load ചെയ്തു — ready!</span>
     </div>""", unsafe_allow_html=True)
 else:
-    st.error("⚠️ secrets.toml-ൽ GROQ_API_KEY നൽകിയിട്ടില്ല.")
+    st.error("⚠️ Streamlit secrets.toml-ൽ GEMINI_API_KEY നൽകിയിട്ടില്ല.")
 
 # ── Form (Single Window) ─────────────────────────────────────────────────
 st.markdown('<div class="form-card">', unsafe_allow_html=True)
@@ -303,20 +292,12 @@ user_input = st.text_area(
     label_visibility="collapsed"
 )
 
-# Groq-ൽ സൗജന്യമായി ലഭിക്കുന്ന മികച്ച മോഡലുകൾ
-model_options = {
-    "Llama 3.3 70B (Fast & Smart)": "llama-3.3-70b-versatile",
-    "DeepSeek R1 (Reasoning)": "deepseek-r1-distill-llama-70b",
-    "Mixtral 8x7B (Balanced)": "mixtral-8x7b-32768",
-    "Gemma 2 9B (Google)": "gemma2-9b-it"
-}
-
-selected_model_name = st.selectbox(
-    "AI Model Select ചെയ്യുക",
-    list(model_options.keys()),
+# നിലവിൽ സജീവമായ പുതിയ മോഡലുകൾ
+model_name = st.selectbox(
+    "AI Model",
+    ["gemini-2.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash-lite"],
     index=0
 )
-model_code = model_options[selected_model_name]
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -325,14 +306,14 @@ gen_btn = st.button("⚡ രേഖ തയ്യാറാക്കുക", type="
 
 if gen_btn:
     if not secret_key:
-        st.error("⚠️ Groq API Key ലഭ്യമല്ല.")
+        st.error("⚠️ API Key ലഭ്യമല്ല.")
     elif not user_input.strip():
         st.error("⚠️ ദയവായി വിവരങ്ങൾ ടെക്സ്റ്റ് ബോക്സിൽ നൽകുക.")
     else:
-        with st.spinner(f"AI ({selected_model_name}) രേഖ തയ്യാറാക്കുന്നു..."):
+        with st.spinner("AI രേഖ തയ്യാറാക്കുന്നു..."):
             try:
                 prompt = build_prompt(doc_type, user_input)
-                result = call_groq(secret_key, model_code, prompt)
+                result = call_gemini(secret_key, model_name, prompt)
                 
                 st.session_state.output = result
                 st.session_state.edit_mode = False
@@ -405,7 +386,7 @@ body{{background:#f0ebe0;padding:12px;font-size:14px}}
 }}
 .sheet::before{{
   content:'';position:absolute;top:0;left:0;right:0;height:4px;
-  background:linear-gradient(90deg,#F55036,#C43B26);
+  background:linear-gradient(90deg,#7B1C28,#A9812F);
   border-radius:8px 8px 0 0;
 }}
 @media print{{
@@ -421,4 +402,4 @@ body{{background:#f0ebe0;padding:12px;font-size:14px}}
         st.caption(f"📊 {wc} words · {len(st.session_state.output)} chars")
 
 st.markdown("---")
-st.caption("🔒 Groq API Powered · Fast & Free Single Window Creator")
+st.caption("🔒 Gemini GenAI SDK Powered · Single Window Creator")
