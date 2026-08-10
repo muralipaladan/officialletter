@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── Custom CSS with Improved Text Contrast & Matching UI Colors ──────────
+# ── Custom CSS with Fixed Text Visibility in Input Boxes ─────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -86,22 +86,27 @@ html, body, [data-testid="stAppViewContainer"] {
     font-weight: 600 !important;
 }
 
-/* Input Fields Styling */
+/* Input Fields Styling - Fixed Text Color to Dark */
 [data-testid="stTextArea"] textarea,
-[data-testid="stSelectbox"] > div > div,
+[data-testid="stSelectbox"] div[data-baseweb="select"] > div,
 [data-testid="stTextInput"] input {
     border-radius: 6px !important;
     border-color: #b8c5b9 !important;
     font-family: 'Noto Sans Malayalam', sans-serif !important;
-    font-size: 0.92rem !important;
-    color: #2C3E50 !important;
-    background-color: #faf8f5 !important;
+    font-size: 0.95rem !important;
+    color: #111111 !important;
+    background-color: #ffffff !important;
 }
+
+/* Dropdown selected text color fix */
+[data-testid="stSelectbox"] span {
+    color: #111111 !important;
+}
+
 [data-testid="stTextArea"] textarea:focus,
 [data-testid="stTextInput"] input:focus {
     border-color: #1A4D2E !important;
     box-shadow: 0 0 0 2px rgba(26,77,46,0.15) !important;
-    background-color: #ffffff !important;
 }
 
 /* Primary Button */
