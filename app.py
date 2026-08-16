@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ── Custom CSS ───────────────────────────────────────────────────────────
+# ── Custom CSS with "For Aiswarya" Golden Tag in Header ───────────────────
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+Malayalam:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;500;600&display=swap');
@@ -106,7 +106,7 @@ html, body, [data-testid="stAppViewContainer"] {
     font-weight: 600 !important;
 }
 
-/* Input Fields Styling */
+/* Input Fields Styling - Fixed Text Color to Dark */
 [data-testid="stTextArea"] textarea,
 [data-testid="stSelectbox"] div[data-baseweb="select"] > div,
 [data-testid="stTextInput"] input {
@@ -118,6 +118,7 @@ html, body, [data-testid="stAppViewContainer"] {
     background-color: #ffffff !important;
 }
 
+/* Dropdown selected text color fix */
 [data-testid="stSelectbox"] span {
     color: #111111 !important;
 }
@@ -194,10 +195,10 @@ DOC_GROUPS = {
 
 ALL_TYPES = {k: v for g in DOC_GROUPS.values() for k, v in g.items()}
 
-# ── Session State Initialization (Persistent Storage) ────────────────────
+# ── Session State Initialization ─────────────────────────────────────────
 for k, v in {
-    'output': '', 'edit_mode': False, 'doc_label': '', 'docx_cache': None,
-    'sender_val': '', 'recipient_val': '', 'details_val': '', 'model_val': 'gemini-2.5-flash'
+    'output': '', 'edit_mode': False,
+    'docx_cache': None,
 }.items():
     if k not in st.session_state:
         st.session_state[k] = v
@@ -298,7 +299,7 @@ def make_docx(text, label):
     buf = io.BytesIO(); doc.save(buf); buf.seek(0)
     return buf.getvalue()
 
-# ── Main UI Header ───────────────────────────────────────────────────────
+# ── Main UI Header with "For Aiswarya" Tag ──────────────────────────────
 st.markdown("""
 <div class="app-header">
   <div class="app-header-left">
@@ -312,7 +313,7 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# ── Form Input Section (Using session_state to persist data) ─────────────
+# ── Form Input Section ───────────────────────────────────────────────────
 st.markdown('<div class="form-card">', unsafe_allow_html=True)
 st.markdown('<div class="form-section-title">📋 രേഖയുടെ തരം തിരഞ്ഞെടുക്കുക</div>', unsafe_allow_html=True)
 
@@ -331,28 +332,25 @@ c1, c2 = st.columns(2)
 with c1:
     sender_info = st.text_area(
         "കത്ത് അയക്കുന്ന ആളുടെ/സ്ഥാപനത്തിന്റെ വിവരങ്ങൾ (Sender Info)", 
-        value=st.session_state.sender_val,
         placeholder="ഉദാ: പൊതുജനം അല്ലെങ്കിൽ ഒരു ഓഫീസിന്റെ പേര്\nപേര് / ഓഫീസിന്റെ പേര്\nവിലാസം\nഫോൺ നമ്പർ", 
         height=120
     )
 with c2:
     recipient_info = st.text_area(
         "കത്ത് ലഭിക്കേണ്ട ആളുടെ/സ്ഥാപനത്തിന്റെ വിവരങ്ങൾ (Recipient Info)", 
-        value=st.session_state.recipient_val,
         placeholder="ഉദാ: പഞ്ചായത്ത് സെക്രട്ടറി / മറ്റൊരു ഓഫീസർ\nപദവി\nഓഫീസിന്റെ പേര്\nസ്ഥലം", 
         height=120
     )
 
 details = st.text_area(
     "വിഷയവും മറ്റ് വിവരങ്ങളും (Subject & Details)",
-    value=st.session_state.details_val,
     placeholder="ഉദാ: കുടിവെള്ള കണക്ഷൻ ലഭിക്കുന്നത് സംബന്ധിച്ച്... അല്ലെങ്കിൽ ഒരു ഓഫീസിൽ നിന്ന് മറ്റേ ഓഫീസിലേക്ക് അയക്കേണ്ട കത്തിന്റെ വിവരങ്ങൾ...",
     height=150
 )
 
 model_name = st.text_input(
     "AI Model Name (ഫ്യൂച്ചർ അപ്ഡേറ്റുകൾക്കായി ടൈപ്പ് ചെയ്യാം)",
-    value=st.session_state.model_val,
+    value="gemini-2.5-flash",
     help="ഉദാഹരണത്തിന് gemini-2.5-flash അല്ലെങ്കിൽ gemini-2.5-pro എന്ന് നൽകാം."
 )
 
@@ -360,12 +358,6 @@ st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Generate Button ───────────────────────────────────────────────────────
 if st.button("⚡ മികച്ച ഔദ്യോഗിക രേഖ തയ്യാറാക്കുക", type="primary"):
-    # Save input values to session state immediately
-    st.session_state.sender_val = sender_info
-    st.session_state.recipient_val = recipient_info
-    st.session_state.details_val = details
-    st.session_state.model_val = model_name
-
     if not active_api_key:
         st.error("⚠️ ദയവായി ഇടത് വശത്തെ സൈഡ്‌ബാറിൽ Google Gemini API Key നൽകുക.")
     elif not details.strip():
@@ -419,9 +411,6 @@ if st.session_state.output:
     if col_btn4.button("🗑️ Clear", use_container_width=True):
         st.session_state.output = ''
         st.session_state.edit_mode = False
-        st.session_state.sender_val = ''
-        st.session_state.recipient_val = ''
-        st.session_state.details_val = ''
         st.rerun()
 
     if st.session_state.edit_mode:
